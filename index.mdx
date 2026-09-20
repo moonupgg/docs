@@ -4,8 +4,11 @@ description: "List and manage your offers from your own tools."
 ---
 
 Everything a seller's integration needs to keep a catalogue of offers up to
-date: read what a category expects, create an offer, restock it, pause it,
-archive it.
+date: create an offer, restock it, pause it, archive it.
+
+Each category has its own paths — `/v1/offers/accounts`, `/v1/offers/currency`
+and so on — carrying its own fields. You integrate with the categories you
+sell in, and a category added to the platform later leaves yours untouched.
 
 This is the public surface. The seller dashboard's own screens — payouts,
 disputes, account settings — are not part of it, and an API key does not reach
@@ -35,13 +38,14 @@ HTTPS only, and every path is versioned: `/v1/...`.
 
     ```bash
     curl -H "Authorization: Bearer $MOONUP_API_KEY" \
-      https://api.moonup.gg/v1/offers/my
+      https://api.moonup.gg/v1/offers/accounts/my
     ```
   </Step>
-  <Step title="Read what a category expects">
-    Before creating an offer, ask the category what it asks for. The schema
-    endpoint answers with the fields, their types and which of them are
-    required.
+  <Step title="Read the category's own fields">
+    What a category's create call takes is in its own reference page — an
+    accounts offer has a price and pictures, a currency offer has a product
+    and a stock. What varies by game is `attributes`, and the schema endpoint
+    answers with those: the fields, their types, and which are required.
 
     ```bash
     curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
@@ -54,6 +58,12 @@ HTTPS only, and every path is versioned: `/v1/...`.
     Catalog reads are public — you can explore them before you have a key.
   </Step>
 </Steps>
+
+## Statuses
+
+A new offer is `pending_moderation` — it is submitted as it is created, and
+there is no draft. Moderation makes it `active`, or `rejected` with a reason.
+Editing a rejected offer is how you resubmit it; there is no separate call.
 
 ## Prices
 
