@@ -1,0 +1,66 @@
+---
+title: "Authentication"
+description: "How a bot connects to MoonUP, and what a key can reach."
+---
+
+A key is created in the cabinet under **Seller → API keys**. It is shown once,
+and it acts on behalf of the account until it is revoked.
+
+## Sending the key
+
+The key goes on every request. There are no intermediate tokens to exchange it
+for.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+HTTPS only. The key is a secret: keep it in an environment variable or in your
+CI secrets, never in a repository.
+
+## What a key reaches
+
+The seller's own offers: list them (`GET /v1/offers/my`), create, edit, manage
+units, pause and archive. Anything the cabinet guards with a second factor —
+changing the account email, 2FA settings, withdrawals — is out of reach for a
+key.
+
+## Address allowlist
+
+Optional. If your bot runs from fixed addresses, list them when you create the
+key (an address or a subnet, up to 16 entries) and the key is refused from
+anywhere else. An empty list means any address.
+
+## Rate limits
+
+| Budget | Limit |
+|---|---|
+| Reads | 500 requests per minute |
+| Writes | 250 requests per minute |
+| Writes to one offer | 5 per minute, 10 per hour |
+
+Going over returns `429`. It is a temporary refusal: wait and retry, the key
+stays valid.
+
+An account holds up to 5 keys. Create the second one ahead of time so you can
+rotate without downtime — point the bot at the new key, then revoke the old one.
+
+## Errors
+
+| Code | What it means |
+|---|---|
+| `401 unauthorized` | The key is unknown, revoked, or the request came from an address outside the allowlist. Which check failed is not disclosed |
+| `403 forbidden` | The key is valid, but the account lacks the right for this operation |
+| `429 rate_limited` | One of the budgets above was exceeded |
+
+## If a key leaks
+
+Revoke it in the cabinet. Revocation takes effect immediately: the next request
+carrying that key gets `401`, wherever it comes from. A revoked key cannot be
+restored — create a new one.

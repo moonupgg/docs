@@ -1,0 +1,58 @@
+---
+title: "MoonUP Seller API"
+description: "List and manage your offers from your own tools."
+---
+
+Everything a seller's bot needs to keep a catalogue of listings up to date: read
+what a category expects, create a listing, restock it, pause it, archive it.
+
+This is the public surface. The cabinet's own screens — payouts, disputes,
+account settings — are not part of it, and an API key does not reach them.
+
+## Base URL
+
+```
+https://api.moonup.gg
+```
+
+Only HTTPS. Every path below is versioned: `/v1/...`.
+
+## Your first request
+
+<Steps>
+  <Step title="Create a key">
+    In the cabinet, go to **Seller → API keys** and create one. It is shown
+    once — copy it then, there is no way to read it back.
+  </Step>
+  <Step title="Send it">
+    The key goes in the `Authorization` header of every request. There is
+    nothing to exchange it for.
+
+    ```bash
+    curl -H "Authorization: Bearer $MOONUP_API_KEY" \
+      https://api.moonup.gg/v1/offers/my
+    ```
+  </Step>
+  <Step title="Read what a category expects">
+    Before creating a listing, ask the category what it asks for. The schema
+    endpoint answers with the fields, their types and which of them are
+    required.
+
+    ```bash
+    curl https://api.moonup.gg/v1/offers/games/{game}/categories/{category_slug}/schema
+    ```
+
+    Catalog reads are public — you can explore them before you have a key.
+  </Step>
+</Steps>
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/authentication">
+    Keys, address allowlists, rate limits, and what the errors mean.
+  </Card>
+  <Card title="API Reference" icon="square-terminal" href="/api-reference">
+    Every endpoint, with a playground you can send live requests from.
+  </Card>
+</CardGroup>

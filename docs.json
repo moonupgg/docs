@@ -1,0 +1,55 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "MoonUP Seller API",
+  "colors": {
+    "primary": "#2a795f",
+    "light": "#67b09c",
+    "dark": "#2a795f"
+  },
+  "favicon": "/favicon.png",
+  "logo": {
+    "light": "/logo/moonup.webp",
+    "dark": "/logo/moonup.webp",
+    "href": "https://moonup.gg"
+  },
+  "appearance": {
+    "default": "dark",
+    "strict": true
+  },
+  "fonts": {
+    "family": "Golos Text"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": ["index", "authentication"]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "openapi": "openapi.yaml"
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      { "label": "moonup.gg", "href": "https://moonup.gg" }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "website": "https://moonup.gg"
+    }
+  },
+  "seo": {
+    "metatags": {
+      "canonical": "https://docs.moonup.gg"
+    }
+  }
+}
