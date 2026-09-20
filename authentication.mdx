@@ -58,9 +58,3 @@ rotate without downtime — point the bot at the new key, then revoke the old on
 | `401 unauthorized` | The key is unknown, revoked, or the request came from an address outside the allowlist. Which check failed is not disclosed |
 | `403 forbidden` | The key is valid, but the account lacks the right for this operation |
 | `429 rate_limited` | One of the budgets above was exceeded |
-
-## If a key leaks
-
-Revoke it in the cabinet. Revocation takes effect immediately: the next request
-carrying that key gets `401`, wherever it comes from. A revoked key cannot be
-restored — create a new one.
