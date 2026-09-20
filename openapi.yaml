@@ -72,7 +72,7 @@ info:
     Every failure answers with the same body, a stable snake_case code:
 
     ```json
-    { "error": "seller_instructions_required" }
+    { "error": "delivery_instructions_required" }
     ```
 
     Branch on `error`, not on the message — there is no message.
@@ -207,7 +207,7 @@ paths:
                           price_per_unit,
                           stock_quantity,
                           min_order_quantity,
-                          seller_instructions,
+                          delivery_instructions,
                           delivery_method,
                         ]
                       delivery_types:
@@ -382,7 +382,7 @@ paths:
                   product_slug: hypixel-skyblock-coins
                   delivery_type: manual
                   delivery_method: ingame_trade
-                  seller_instructions: Tell me your IGN, meet me at the Bazaar.
+                  delivery_instructions: Tell me your IGN, meet me at the Bazaar.
                   manual_delivery_value: 20
                   manual_delivery_unit: minutes
                   price_per_unit: 4200
@@ -670,7 +670,7 @@ components:
     BadRequest:
       description: |
         The body or a parameter is wrong. `error` names which rule — e.g.
-        `seller_instructions_required`, `bulk_fields_required`,
+        `delivery_instructions_required`, `bulk_fields_required`,
         `instant_requires_activation_code`, `title_too_short`,
         `invalid_attributes`, `invalid_image`.
       content:
@@ -678,7 +678,7 @@ components:
           schema: { $ref: "#/components/schemas/Error" }
           examples:
             missing_field:
-              value: { error: seller_instructions_required }
+              value: { error: delivery_instructions_required }
     Unauthorized:
       description: |
         The key is unknown, revoked, or the request came from an address
@@ -729,7 +729,7 @@ components:
         error:
           type: string
           description: A stable snake_case code. Branch on this.
-          examples: [seller_instructions_required]
+          examples: [delivery_instructions_required]
       required: [error]
 
     Game:
@@ -907,10 +907,12 @@ components:
         delivery_method:
           type: string
           description: A key from `GET /v1/offers/delivery-methods`.
-        seller_instructions:
+        delivery_instructions:
           type: string
           maxLength: 2048
-          description: What the buyer is told about the handoff, in your words.
+          description: |
+            What the buyer is told to do at handover, in your words. Required
+            where the category's `requirements` says so — read its schema.
         units:
           type: array
           description: |
@@ -923,9 +925,6 @@ components:
         manual_delivery_unit:
           type: string
           enum: [minutes, hours, days]
-        manual_delivery_instructions:
-          type: string
-          maxLength: 2048
         product_slug:
           type: string
           description: Bulk listings only — from `.../products`.
@@ -969,8 +968,7 @@ components:
           description: The stock a switch to instant starts with.
         manual_delivery_value: { type: integer }
         manual_delivery_unit: { type: string, enum: [minutes, hours, days] }
-        manual_delivery_instructions: { type: string, maxLength: 2048 }
-        seller_instructions: { type: string, maxLength: 2048 }
+        delivery_instructions: { type: string, maxLength: 2048 }
         delivery_method: { type: string }
         price_per_unit: { type: integer, format: int64 }
         stock_quantity: { type: integer, format: int64 }
@@ -981,7 +979,6 @@ components:
       description: Your own listing, as the write calls answer with it.
       properties:
         id: { type: string, format: uuid }
-        seller_id: { type: string, format: uuid }
         title: { type: string }
         description: { type: string }
         price: { type: integer, format: int64 }
@@ -996,7 +993,6 @@ components:
         delivery_type: { type: string, enum: [instant, manual] }
         manual_delivery_value: { type: [integer, "null"] }
         manual_delivery_unit: { type: [string, "null"] }
-        manual_delivery_instructions: { type: [string, "null"] }
         status:
           type: string
           enum:
@@ -1018,7 +1014,7 @@ components:
           type: [string, "null"]
           description: Why moderation refused it, when it did.
         rejection_note: { type: [string, "null"] }
-        seller_instructions: { type: string }
+        delivery_instructions: { type: string }
         delivery_method: { type: [string, "null"] }
         price_per_unit: { type: [integer, "null"], format: int64 }
         stock_quantity: { type: [integer, "null"], format: int64 }
