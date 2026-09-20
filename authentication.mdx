@@ -1,10 +1,10 @@
 ---
 title: "Authentication"
-description: "How a bot connects to MoonUP, and what a key can reach."
+description: "How an integration connects to MoonUP, and what a key can reach."
 ---
 
-A key is created in the cabinet under **Seller → API keys**. It is shown once,
-and it acts on behalf of the account until it is revoked.
+A key is created in the seller dashboard under **Seller → API keys**. It is
+shown once, and it acts on behalf of the account until it is revoked.
 
 ## Sending the key
 
@@ -21,21 +21,21 @@ Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
 ```
 
-HTTPS only. The key is a secret: keep it in an environment variable or in your
-CI secrets, never in a repository.
+HTTPS only. A key that has travelled over plain HTTP should be treated as
+leaked and rotated.
 
 ## What a key reaches
 
 The seller's own offers: list them (`GET /v1/offers/my`), create, edit, manage
-units, pause and archive. Anything the cabinet guards with a second factor —
+units, pause and archive. Anything the dashboard guards with a second factor —
 changing the account email, 2FA settings, withdrawals — is out of reach for a
 key.
 
 ## Address allowlist
 
-Optional. If your bot runs from fixed addresses, list them when you create the
-key (an address or a subnet, up to 16 entries) and the key is refused from
-anywhere else. An empty list means any address.
+Optional. If your integration runs from fixed addresses, list them when you
+create the key (an address or a subnet, up to 16 entries) and the key is
+refused from anywhere else. An empty list means any address.
 
 ## Rate limits
 
@@ -48,13 +48,16 @@ anywhere else. An empty list means any address.
 Going over returns `429`. It is a temporary refusal: wait and retry, the key
 stays valid.
 
-An account holds up to 5 keys. Create the second one ahead of time so you can
-rotate without downtime — point the bot at the new key, then revoke the old one.
+## Rotating a key
+
+An account holds up to 5 keys. Create the replacement before you need it: point
+your integration at the new key, confirm it works, then revoke the old one.
+Nothing has to go down in between.
 
 ## Errors
 
 | Code | What it means |
 |---|---|
 | `401 unauthorized` | The key is unknown, revoked, or the request came from an address outside the allowlist. Which check failed is not disclosed |
-| `403 forbidden` | The key is valid, but the account lacks the right for this operation |
+| `403 forbidden` | The key is valid, but the account may not do this — it lacks the permission, or it is suspended (`account_suspended`) |
 | `429 rate_limited` | One of the budgets above was exceeded |

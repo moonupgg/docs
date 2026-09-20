@@ -5,67 +5,70 @@ info:
   version: "1.0.0"
   summary: List and manage your offers from your own tools.
   description: |
-    Everything a seller's bot needs to keep a catalogue of listings up to date:
-    read what a category expects, create a listing, restock it, pause it,
+    Everything a seller's integration needs to keep a catalogue of offers up to
+    date: read what a category expects, create an offer, restock it, pause it,
     archive it.
 
-    This is the public surface. The cabinet's own screens — payouts, disputes,
-    account settings — are not part of it and an API key does not reach them.
+    This is the public surface. The seller dashboard's own screens — payouts,
+    disputes, account settings — are not part of it and an API key does not
+    reach them.
 
     ## Authentication
 
-    Create a key in the cabinet under **Seller → API keys**. It is shown once.
-    Send it on every request:
+    Create a key in the seller dashboard under **Seller → API keys**. It is
+    shown once. Send it on every request:
 
     ```
     Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     ```
 
     There is nothing to exchange it for — no short-lived token sits in between.
-    HTTPS only. Keep the key in an environment variable or your CI's secret
-    store, never in a repository.
-
     A key may be pinned to a list of addresses when you create it (up to 16
-    addresses or subnets). An empty list means any address.
+    addresses or subnets); an empty list means any address.
 
-    ## Creating a listing
+    ## Prices
 
-    Categories do not ask for the same things. An accounts listing needs a
-    picture and a price; a currency listing needs a product and a stock; a
-    gift-card listing may only be delivered instantly, with an activation code.
+    Every price in this API is an integer in US cents: `price: 4990` is $49.90.
+    `USD` is the only currency.
 
-    Rather than describing that in prose that would go stale, every category
-    answers for itself:
+    ## Creating an offer
 
-        GET /v1/offers/games/{game}/categories/{category_slug}/schema
+    Categories do not ask for the same things. An accounts offer needs a
+    picture and a price; a currency offer needs a product and a stock; a
+    gift-card offer may only be delivered instantly, with an activation code.
+    So ask the category itself:
+
+        GET /v1/offers/games/{game_id}/categories/{category_slug}/schema
 
     `attributes[]` is the category's own field list, and `requirements` is what
-    the body of `POST /v1/offers` must carry for it. Both come from the code
-    that validates the create call, so what you are told is what you are held
-    to.
+    the body of `POST /v1/offers` must carry for it.
 
     A full pass looks like this:
 
-    1. `GET /v1/offers/games` — pick a game, keep its `slug`.
-    2. `GET /v1/offers/games/{game}/categories` — pick a category.
-    3. `GET /v1/offers/games/{game}/categories/{category_slug}/schema` — read
-       `requirements` and `attributes`.
-    4. `POST /v1/offers/images/upload-url`, then PUT the bytes to the URL it
-       returns. Repeat per picture, collect the public URLs.
-    5. `POST /v1/offers` — the listing is created as a `draft`.
+    1. `GET /v1/offers/games` — pick a game and keep both its `id` and its
+       `slug`. The catalog paths below are addressed by id; `POST /v1/offers`
+       names the game by slug.
+    2. `GET /v1/offers/games/{game_id}/categories` — pick a category.
+    3. `GET /v1/offers/games/{game_id}/categories/{category_slug}/schema` —
+       read `requirements` and `attributes`. This one path resolves a `slug`
+       too.
+    4. `POST /v1/offers/images/upload-url`, then PUT the bytes to the
+       `upload_url` it returns and keep its `image_url`. WebP only, 2 MiB a
+       picture, at most 10 an offer. Repeat per picture; skip the step when the
+       category's `min_images` is 0.
+    5. `POST /v1/offers` — the offer is created as a `draft`.
     6. `POST /v1/offers/{id}/submit` — it goes to moderation, then active.
 
     ## Rate limits
 
-    | | Budget |
+    | Budget | Limit |
     |---|---|
     | Reads | 500 requests per minute |
     | Writes | 250 requests per minute |
     | Writes to one offer | 5 per minute and 10 per hour |
 
     Going over answers `429`. It is temporary: wait and retry, the key stays
-    valid. Up to 5 keys per account — create the second one ahead of time so
-    you can rotate without downtime.
+    valid. Up to 5 keys per account, so you can rotate without downtime.
 
     ## Errors
 
@@ -90,14 +93,14 @@ tags:
       What can be listed, and what each category asks for. Public: these read
       without a key, so you can explore before you have one.
   - name: Offers
-    description: Your own listings — create, edit, restock, pause, archive.
+    description: Your own offers — create, edit, restock, pause, archive.
 
 paths:
   /v1/offers/games:
     get:
       tags: [Catalog]
       summary: List games
-      description: Every game with listings open. `slug` is what the rest of the API names a game by.
+      description: Every game with offers open. `slug` is what the rest of the API names a game by.
       security: []
       parameters:
         - name: category
@@ -108,7 +111,7 @@ paths:
           in: query
           description: Narrow by name.
           schema: { type: string }
-        - { $ref: "#/components/parameters/Limit" }
+        - { $ref: "#/components/parameters/CatalogLimit" }
         - { $ref: "#/components/parameters/Offset" }
       responses:
         "200":
@@ -123,13 +126,13 @@ paths:
                     items: { $ref: "#/components/schemas/Game" }
                   total: { type: integer, format: int64 }
 
-  /v1/offers/games/{game}/categories:
+  /v1/offers/games/{game_id}/categories:
     get:
       tags: [Catalog]
       summary: List a game's categories
       security: []
       parameters:
-        - { $ref: "#/components/parameters/Game" }
+        - { $ref: "#/components/parameters/GameID" }
       responses:
         "200":
           description: OK
@@ -150,10 +153,10 @@ paths:
       description: |
         The one call to make before building a create body. `attributes[]` is
         the category's field list; `requirements` is what the create body must
-        carry. Both are derived from the validation itself.
+        carry.
       security: []
       parameters:
-        - { $ref: "#/components/parameters/Game" }
+        - { $ref: "#/components/parameters/GameRef" }
         - { $ref: "#/components/parameters/CategorySlug" }
       responses:
         "200":
@@ -216,16 +219,16 @@ paths:
                       min_images: 0
         "404": { $ref: "#/components/responses/NotFound" }
 
-  /v1/offers/games/{game}/categories/{category_slug}/products:
+  /v1/offers/games/{game_id}/categories/{category_slug}/products:
     get:
       tags: [Catalog]
       summary: List a category's products
       description: |
-        The curated products a bulk (currency) listing may sell. `slug` is what
+        The curated products a bulk (currency) offer may sell. `slug` is what
         `product_slug` names. Empty for categories that are not priced per unit.
       security: []
       parameters:
-        - { $ref: "#/components/parameters/Game" }
+        - { $ref: "#/components/parameters/GameID" }
         - { $ref: "#/components/parameters/CategorySlug" }
       responses:
         "200":
@@ -251,11 +254,7 @@ paths:
         values inline in the schema.
       security: []
       parameters:
-        - name: game_id
-          in: path
-          required: true
-          description: The game's id, as `GET /v1/offers/games` returns it.
-          schema: { type: string, format: uuid }
+        - { $ref: "#/components/parameters/GameID" }
         - name: attribute_key
           in: path
           required: true
@@ -278,7 +277,7 @@ paths:
       tags: [Catalog]
       summary: List delivery methods
       description: |
-        The global list a listing's `delivery_method` is picked from. A
+        The global list an offer's `delivery_method` is picked from. A
         category may narrow it — the schema's `requirements.delivery_types[]`
         says which keys it accepts.
       security: []
@@ -299,7 +298,7 @@ paths:
       tags: [Offers]
       summary: List your offers
       description: |
-        Every listing of yours, in any status. The seller is the key's own
+        Every offer of yours, in any status. The seller is the key's own
         account — there is no parameter to read someone else's.
       parameters:
         - name: status
@@ -333,12 +332,29 @@ paths:
                     items: { $ref: "#/components/schemas/MyOffer" }
                   counts:
                     type: object
-                    description: How many of your listings sit in each status.
-                    additionalProperties: { type: integer }
+                    description: |
+                      How many of your offers sit in each status. Counted over
+                      everything you have, ignoring the filters on this call.
+                    additionalProperties: { type: integer, format: int64 }
                   facets:
-                    type: object
-                    description: The game/category pairs you actually have listings in.
-                  total: { type: integer, format: int64 }
+                    type: array
+                    description: |
+                      The game/category pairs you actually have offers in —
+                      what a filter dropdown is built from. Like `counts`, not
+                      narrowed by this call's filters.
+                    items:
+                      type: object
+                      properties:
+                        game_slug: { type: string }
+                        game_name: { type: string }
+                        game_icon_url: { type: [string, "null"], format: uri }
+                        category_slug: { type: string }
+                        category_name: { type: string }
+                        count: { type: integer, format: int64 }
+                  total:
+                    type: integer
+                    format: int64
+                    description: How many offers the filters on this call match.
         "401": { $ref: "#/components/responses/Unauthorized" }
 
   /v1/offers:
@@ -346,7 +362,7 @@ paths:
       tags: [Offers]
       summary: Create an offer
       description: |
-        Creates the listing as a `draft`. Read the category's schema first —
+        Creates the offer as a `draft`. Read the category's schema first —
         `requirements` names the fields this body must carry for it.
 
         Nothing is on sale until `POST /v1/offers/{id}/submit`.
@@ -357,7 +373,7 @@ paths:
             schema: { $ref: "#/components/schemas/CreateOffer" }
             examples:
               accounts_instant:
-                summary: An accounts listing delivered instantly from a pool of two
+                summary: An accounts offer delivered instantly from a pool of two
                 value:
                   game: roblox
                   category: accounts
@@ -365,7 +381,7 @@ paths:
                   description: Original email included.
                   price: 4990
                   delivery_type: instant
-                  images: ["https://cdn.moonup.gg/offers/2f9c.jpg"]
+                  images: ["https://cdn.moonup.gg/offers/2f9c.webp"]
                   attributes:
                     more_played_game: Blox Fruits
                     robux_balance: 40000
@@ -374,7 +390,7 @@ paths:
                     - { login: "a@example.com", password: "..." }
                     - { login: "b@example.com", password: "..." }
               currency_bulk:
-                summary: A currency listing priced per unit out of a stock
+                summary: A currency offer priced per unit out of a stock
                 value:
                   game: hypixel
                   category: currency
@@ -408,8 +424,9 @@ paths:
         storage, never through this API. Send the same `Content-Type` and
         `Content-Length` on the PUT as you declared here, or it is refused.
 
-        There is no confirm step: sending the returned public URL in `images[]`
-        on create or patch is what attaches it.
+        There is no confirm step: the `image_url` this answers with is the
+        public URL, and putting it in `images[]` on create or patch is what
+        attaches it. One call per picture.
       requestBody:
         required: true
         content:
@@ -420,14 +437,19 @@ paths:
               properties:
                 content_type:
                   type: string
-                  enum: [image/jpeg, image/png, image/webp]
+                  enum: [image/webp]
+                  description: WebP is the only format offer pictures are accepted in.
                 content_length:
                   type: integer
                   format: int64
-                  description: Bytes. Bound into the signature, so storage enforces it too.
+                  minimum: 1
+                  maximum: 2097152
+                  description: |
+                    Bytes, at most 2 MiB. Bound into the signature, so storage
+                    enforces it too.
             examples:
-              jpeg:
-                value: { content_type: image/jpeg, content_length: 184320 }
+              webp:
+                value: { content_type: image/webp, content_length: 184320 }
       responses:
         "200":
           description: OK
@@ -436,8 +458,17 @@ paths:
               schema:
                 type: object
                 properties:
-                  upload_url: { type: string, format: uri }
-                  expires_in: { type: integer, description: Seconds the URL stays usable. }
+                  upload_url:
+                    type: string
+                    format: uri
+                    description: Presigned `PUT` target. Send the bytes here.
+                  image_url:
+                    type: string
+                    format: uri
+                    description: |
+                      The public URL of the picture once uploaded — this is
+                      what goes in `images[]`.
+                  expires_in: { type: integer, description: Seconds the upload URL stays usable. }
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
 
@@ -446,9 +477,9 @@ paths:
       tags: [Offers]
       summary: Read one offer
       description: |
-        Public while the listing is active. Send your key to read your own
-        listing in any status — it then also carries `units`, which an
-        anonymous reader never sees.
+        Public while the offer is active. Send your key to read your own offer
+        in any status — it then also carries `units`, which an anonymous reader
+        never sees.
       security: []
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
@@ -466,6 +497,9 @@ paths:
         Every field is optional and means "leave this alone" when absent.
         Sending `images` or `tags` replaces the whole list rather than adding
         to it. Changing `delivery_type` replaces the offer's unit pool.
+
+        A category's `min_images` is a create-time rule: patching `images` down
+        to an empty list is not refused here.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       requestBody:
@@ -492,7 +526,7 @@ paths:
     delete:
       tags: [Offers]
       summary: Archive an offer
-      description: Takes the listing off the shelf for good. It stays readable to you; it cannot be brought back.
+      description: Retires the offer for good — it leaves the marketplace, stays readable to you, and cannot be brought back. To take an offer down temporarily, pause it instead.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -602,8 +636,8 @@ paths:
   /v1/offers/{id}/pause:
     post:
       tags: [Offers]
-      summary: Take an offer off the shelf
-      description: Reversible. Buyers stop seeing it; nothing else about it changes.
+      summary: Pause an offer
+      description: Reversible. Buyers stop seeing the offer; nothing else about it changes. To take it down permanently, archive it with `DELETE /v1/offers/{id}`.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -619,7 +653,7 @@ paths:
   /v1/offers/{id}/unpause:
     post:
       tags: [Offers]
-      summary: Put a paused offer back
+      summary: Unpause an offer
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -637,15 +671,23 @@ components:
     api_key:
       type: http
       scheme: bearer
-      description: Your API key, from the cabinet under **Seller → API keys**.
+      description: Your API key, from the seller dashboard under **Seller → API keys**.
 
   parameters:
-    Game:
+    GameRef:
       name: game
       in: path
       required: true
-      description: The game's `slug`, or its id — both are accepted.
+      description: The game's `slug` or its id — this path resolves either.
       schema: { type: string, examples: [roblox] }
+    GameID:
+      name: game_id
+      in: path
+      required: true
+      description: |
+        The game's id, as `GET /v1/offers/games` returns it. This path takes
+        the id only; a `slug` here answers `400`.
+      schema: { type: string, format: uuid }
     CategorySlug:
       name: category_slug
       in: path
@@ -656,14 +698,25 @@ components:
       in: path
       required: true
       schema: { type: string, format: uuid }
+    CatalogLimit:
+      name: limit
+      in: query
+      description: |
+        Page size, capped at 100. Omitted or 0 returns every row — catalogs are
+        small enough for that.
+      schema: { type: integer, minimum: 0, maximum: 100 }
     Limit:
       name: limit
       in: query
-      description: Page size. Absent or 0 returns everything.
-      schema: { type: integer, minimum: 0 }
+      description: |
+        Page size: 20 when omitted or 0, capped at 100. A larger value is
+        lowered silently, so page with `offset` and `total` rather than asking
+        for the whole set at once.
+      schema: { type: integer, minimum: 0, maximum: 100 }
     Offset:
       name: offset
       in: query
+      description: How many rows to skip. Use it with `limit` to page.
       schema: { type: integer, minimum: 0 }
 
   responses:
@@ -697,7 +750,7 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
     NotFound:
-      description: No such thing — or none you may know about, which answers the same on purpose.
+      description: No such thing, or nothing your key may see — both answer the same, on purpose.
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
@@ -706,9 +759,10 @@ components:
               value: { error: not_found }
     Conflict:
       description: |
-        The request was well formed, the offer is just not where it would have
-        to be — `invalid_transition`, `offer_locked`, `sold_out`,
-        `seller_on_vacation`.
+        The request was well formed, the offer is just not in a state that
+        allows it — `invalid_transition`, `offer_locked`, `sold_out`, or
+        `seller_on_vacation` (vacation mode is on for the account; only the
+        seller dashboard turns it off).
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
@@ -787,6 +841,7 @@ components:
     DeliveryMethod:
       type: object
       properties:
+        id: { type: string, format: uuid }
         key: { type: string, examples: [activation_code] }
         label: { type: string }
         description: { type: string }
@@ -832,7 +887,7 @@ components:
         game_category_id: { type: string, format: uuid }
         version:
           type: integer
-          description: The schema version a listing created now is pinned to.
+          description: The schema version an offer created now is pinned to.
         attributes:
           type: array
           items: { $ref: "#/components/schemas/SchemaField" }
@@ -842,13 +897,12 @@ components:
     CategoryRequirements:
       type: object
       description: |
-        What `POST /v1/offers` demands for this category. Derived from the same
-        rules the create call validates against, so it cannot drift from them.
+        What `POST /v1/offers` demands for this category.
       properties:
         required:
           type: array
           items: { type: string }
-          description: Body fields every listing here must carry, whatever its delivery type.
+          description: Body fields every offer here must carry, whatever its delivery type.
         delivery_types:
           type: array
           description: The delivery types this category allows, each with what picking it adds.
@@ -885,19 +939,24 @@ components:
           type: integer
           format: int64
           description: |
-            Minor units of the platform currency. Ignored for a bulk
-            (per-unit) listing, which prices off `price_per_unit` instead.
+            US cents — `4990` is $49.90. Ignored for a bulk (per-unit) offer,
+            which prices off `price_per_unit` instead.
         currency:
           type: string
-          description: The platform currency, or omitted. Anything else is refused.
+          description: |
+            `USD`, or omitted — it is the only currency the platform prices in.
+            Anything else is refused.
         attributes:
           type: object
           description: The category's own fields, keyed by the schema's `key`.
           additionalProperties: true
         images:
           type: array
+          maxItems: 10
           items: { type: string, format: uri }
-          description: URLs minted by `POST /v1/offers/images/upload-url`. Nothing else is accepted.
+          description: |
+            Up to 10 `image_url`s minted by `POST /v1/offers/images/upload-url`.
+            A URL from anywhere else is refused (`invalid_image`).
         tags:
           type: array
           items: { type: string }
@@ -921,25 +980,26 @@ components:
           items: { type: object }
         manual_delivery_value:
           type: integer
+          format: int32
           description: Manual delivery only — the handoff time you promise.
         manual_delivery_unit:
           type: string
           enum: [minutes, hours, days]
         product_slug:
           type: string
-          description: Bulk listings only — from `.../products`.
+          description: Bulk offers only — from `.../products`.
         price_per_unit:
           type: integer
           format: int64
-          description: Bulk listings only. Per one of the product's `scale`, not per coin.
+          description: Bulk offers only — US cents per one of the product's `scale`, not per coin.
         stock_quantity:
           type: integer
           format: int64
-          description: Bulk listings only.
+          description: Bulk offers only — counted in the product's `scale`.
         min_order_quantity:
           type: integer
           format: int64
-          description: Bulk listings only — the smallest order you will take.
+          description: Bulk offers only — the smallest order you will take.
 
     UpdateOffer:
       type: object
@@ -949,12 +1009,14 @@ components:
       properties:
         title: { type: string, minLength: 8, maxLength: 128 }
         description: { type: string, maxLength: 4096 }
-        price: { type: integer, format: int64 }
-        currency: { type: string }
+        price: { type: integer, format: int64, description: US cents. }
+        currency: { type: string, description: "`USD`, the only currency the platform prices in." }
         attributes: { type: object, additionalProperties: true }
         images:
           type: array
+          maxItems: 10
           items: { type: string, format: uri }
+          description: Replaces the gallery. Minted URLs only, up to 10.
         tags:
           type: array
           items: { type: string }
@@ -976,12 +1038,12 @@ components:
 
     Offer:
       type: object
-      description: Your own listing, as the write calls answer with it.
+      description: Your own offer, as the write calls answer with it.
       properties:
         id: { type: string, format: uuid }
         title: { type: string }
         description: { type: string }
-        price: { type: integer, format: int64 }
+        price: { type: integer, format: int64, description: US cents. }
         currency: { type: string }
         attributes: { type: object, additionalProperties: true }
         images:
@@ -995,6 +1057,13 @@ components:
         manual_delivery_unit: { type: [string, "null"] }
         status:
           type: string
+          description: |
+            `draft` on create, `pending_moderation` after submit, then `active`
+            once moderation passes or `rejected` with a `rejection_reason_code`
+            if it does not. `paused` and `archived` are yours to set, through
+            pause and `DELETE`. `reserved` and `sold` follow an order.
+            `removed` is a moderation takedown after publishing, which no call
+            in this API performs.
           enum:
             [
               draft,
@@ -1012,7 +1081,19 @@ components:
         published_at: { type: [string, "null"], format: date-time }
         rejection_reason_code:
           type: [string, "null"]
-          description: Why moderation refused it, when it did.
+          enum:
+            [
+              prohibited_item,
+              misleading_description,
+              stolen_images,
+              invalid_price,
+              insufficient_details,
+              other,
+              null,
+            ]
+          description: |
+            Why moderation refused the offer, or took it down. One of a closed
+            set; `rejection_note` carries the moderator's own words.
         rejection_note: { type: [string, "null"] }
         delivery_instructions: { type: string }
         delivery_method: { type: [string, "null"] }
@@ -1049,7 +1130,7 @@ components:
         id: { type: string, format: uuid }
         title: { type: string }
         status: { type: string }
-        price: { type: integer, format: int64 }
+        price: { type: integer, format: int64, description: US cents. }
         currency: { type: string }
         images:
           type: array
@@ -1064,7 +1145,10 @@ components:
         game_icon_url: { type: [string, "null"], format: uri }
         category_name: { type: string }
         category_slug: { type: string }
-        stock: { type: integer, description: Units still available. }
+        stock: { type: integer, description: "Units still available in the offer's unit pool (instant delivery)." }
         price_per_unit: { type: [integer, "null"], format: int64 }
-        stock_quantity: { type: [integer, "null"], format: int64 }
+        stock_quantity:
+          type: [integer, "null"]
+          format: int64
+          description: A bulk offer's per-unit stock, counted in `product_scale`. Unrelated to `stock` above.
         product_scale: { type: [string, "null"] }

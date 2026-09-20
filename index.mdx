@@ -3,11 +3,16 @@ title: "MoonUP Seller API"
 description: "List and manage your offers from your own tools."
 ---
 
-Everything a seller's bot needs to keep a catalogue of listings up to date: read
-what a category expects, create a listing, restock it, pause it, archive it.
+Everything a seller's integration needs to keep a catalogue of offers up to
+date: read what a category expects, create an offer, restock it, pause it,
+archive it.
 
-This is the public surface. The cabinet's own screens — payouts, disputes,
-account settings — are not part of it, and an API key does not reach them.
+This is the public surface. The seller dashboard's own screens — payouts,
+disputes, account settings — are not part of it, and an API key does not reach
+them.
+
+An *offer* is one listing on the marketplace. The API calls them `offers`, and
+so does everything below.
 
 ## Base URL
 
@@ -15,14 +20,14 @@ account settings — are not part of it, and an API key does not reach them.
 https://api.moonup.gg
 ```
 
-Only HTTPS. Every path below is versioned: `/v1/...`.
+HTTPS only, and every path is versioned: `/v1/...`.
 
 ## Your first request
 
 <Steps>
   <Step title="Create a key">
-    In the cabinet, go to **Seller → API keys** and create one. It is shown
-    once — copy it then, there is no way to read it back.
+    In the seller dashboard, go to **Seller → API keys** and create one. It is
+    shown once — copy it then, there is no way to read it back.
   </Step>
   <Step title="Send it">
     The key goes in the `Authorization` header of every request. There is
@@ -34,17 +39,26 @@ Only HTTPS. Every path below is versioned: `/v1/...`.
     ```
   </Step>
   <Step title="Read what a category expects">
-    Before creating a listing, ask the category what it asks for. The schema
+    Before creating an offer, ask the category what it asks for. The schema
     endpoint answers with the fields, their types and which of them are
     required.
 
     ```bash
-    curl https://api.moonup.gg/v1/offers/games/{game}/categories/{category_slug}/schema
+    curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
     ```
+
+    This path resolves a game's `slug`. The other catalog paths address a
+    game by the `id` that `GET /v1/offers/games` returns — a slug there
+    answers `400`.
 
     Catalog reads are public — you can explore them before you have a key.
   </Step>
 </Steps>
+
+## Prices
+
+Every price in this API is an integer in US cents. `price: 4990` is $49.90.
+There are no fractional amounts, and `USD` is the only currency.
 
 ## Where to go next
 
