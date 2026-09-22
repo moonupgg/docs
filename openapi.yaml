@@ -1653,9 +1653,8 @@ components:
             anywhere else is refused (`invalid_image`).
         tags:
           type: array
-          maxItems: 10
-          items: { type: string, maxLength: 32 }
-          description: Up to 10, each up to 32 characters, no commas. Stored trimmed, lower-cased and deduplicated.
+          items: { type: string }
+          description: Up to 500 characters in all, counted as the tags joined with ", ". No commas inside a tag. Stored trimmed, lower-cased and deduplicated.
         attributes:
           type: object
           description: The category's own fields — read them from its schema.
@@ -1695,8 +1694,7 @@ components:
           description: Replaces the whole gallery.
         tags:
           type: array
-          maxItems: 10
-          items: { type: string, maxLength: 32 }
+          items: { type: string }
           description: Replaces the whole list. Same limits as on create.
         attributes:
           type: object
@@ -1822,9 +1820,8 @@ components:
           description: Optional — the marketplace renders the pack tile.
         tags:
           type: array
-          maxItems: 10
-          items: { type: string, maxLength: 32 }
-          description: Up to 10, each up to 32 characters, no commas. Stored trimmed, lower-cased and deduplicated.
+          items: { type: string }
+          description: Up to 500 characters in all, counted as the tags joined with ", ". No commas inside a tag. Stored trimmed, lower-cased and deduplicated.
         attributes:
           type: object
           additionalProperties: true
@@ -1852,8 +1849,7 @@ components:
           description: Replaces the whole gallery.
         tags:
           type: array
-          maxItems: 10
-          items: { type: string, maxLength: 32 }
+          items: { type: string }
           description: Replaces the whole list. Same limits as on create.
         attributes:
           type: object
@@ -1908,9 +1904,8 @@ components:
         description: { type: string, maxLength: 4096 }
         tags:
           type: array
-          maxItems: 10
-          items: { type: string, maxLength: 32 }
-          description: Up to 10, each up to 32 characters, no commas. Stored trimmed, lower-cased and deduplicated.
+          items: { type: string }
+          description: Up to 500 characters in all, counted as the tags joined with ", ". No commas inside a tag. Stored trimmed, lower-cased and deduplicated.
         attributes:
           type: object
           additionalProperties: true
@@ -1936,8 +1931,7 @@ components:
         description: { type: string, maxLength: 4096 }
         tags:
           type: array
-          maxItems: 10
-          items: { type: string, maxLength: 32 }
+          items: { type: string }
           description: Replaces the whole list. Same limits as on create.
         attributes:
           type: object
