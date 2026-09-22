@@ -68,36 +68,6 @@
                 ]
               },
               {
-                "group": "Items",
-                "pages": [
-                  "GET /v1/offers/items/my",
-                  "GET /v1/offers/items/{id}",
-                  "POST /v1/offers/items",
-                  "POST /v1/offers/items/{id}/units",
-                  "POST /v1/offers/items/{id}/publish",
-                  "POST /v1/offers/items/{id}/pause",
-                  "POST /v1/offers/items/{id}/unpause",
-                  "PATCH /v1/offers/items/{id}",
-                  "DELETE /v1/offers/items/{id}/units/{unit_id}",
-                  "DELETE /v1/offers/items/{id}"
-                ]
-              },
-              {
-                "group": "Boosting",
-                "pages": [
-                  "GET /v1/offers/boosting/my",
-                  "GET /v1/offers/boosting/{id}",
-                  "POST /v1/offers/boosting",
-                  "POST /v1/offers/boosting/{id}/units",
-                  "POST /v1/offers/boosting/{id}/publish",
-                  "POST /v1/offers/boosting/{id}/pause",
-                  "POST /v1/offers/boosting/{id}/unpause",
-                  "PATCH /v1/offers/boosting/{id}",
-                  "DELETE /v1/offers/boosting/{id}/units/{unit_id}",
-                  "DELETE /v1/offers/boosting/{id}"
-                ]
-              },
-              {
                 "group": "Top-ups",
                 "pages": [
                   "GET /v1/offers/top-up/my",
