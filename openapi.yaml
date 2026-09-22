@@ -410,7 +410,7 @@ paths:
     delete:
       tags: [Accounts]
       operationId: archiveFixedPriceOffer_accounts
-      summary: Archive one of your accounts listings
+      summary: Delete one of your accounts listings
       description: |
         Retires the listing for good — it leaves the marketplace, stays
         readable to you, and cannot be brought back. To take it down
@@ -678,7 +678,7 @@ paths:
     delete:
       tags: [Top-ups]
       operationId: archiveTopUpOffer_top_up
-      summary: Archive one of your top-up listings
+      summary: Delete one of your top-up listings
       description: |
         Retires the listing for good — it leaves the marketplace, stays
         readable to you, and cannot be brought back. To take it down
@@ -946,7 +946,7 @@ paths:
     delete:
       tags: [Gift cards]
       operationId: archiveGiftCardOffer_gift_card
-      summary: Archive one of your gift-card listings
+      summary: Delete one of your gift-card listings
       description: |
         Retires the listing for good — it leaves the marketplace, stays
         readable to you, and cannot be brought back. To take it down
@@ -1214,7 +1214,7 @@ paths:
     delete:
       tags: [Currency]
       operationId: archiveCurrencyOffer_currency
-      summary: Archive one of your currency listings
+      summary: Delete one of your currency listings
       description: |
         Retires the listing for good — it leaves the marketplace, stays
         readable to you, and cannot be brought back. To take it down
