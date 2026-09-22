@@ -174,9 +174,10 @@ paths:
       tags: [Catalog]
       summary: What this category needs
       description: |
-        The one call to make before building a create body. `attributes[]` is
-        the category's field list; `requirements` is what the create body must
-        carry. Both are derived from the validation itself.
+        The one call to make before building a create body: `attributes[]` is
+        the category's field list, and `version` is what a listing created now
+        is pinned to. What else a body must carry is the category's own create
+        page — each category takes only its own fields.
       security: []
       parameters:
         - { $ref: "#/components/parameters/Game" }
@@ -207,14 +208,6 @@ paths:
                         required: false
                         filterable: false
                         min: 0
-                    requirements:
-                      required: [game, category, title, delivery_type, price]
-                      delivery_types:
-                        - value: instant
-                          required: [units]
-                        - value: manual
-                          required: [manual_delivery_value, manual_delivery_unit]
-                      min_images: 1
                 currency:
                   summary: A currency category — priced per unit out of a stock, manual only
                   value:
@@ -222,24 +215,6 @@ paths:
                     game_category_id: 018f2c1e-0000-7000-8000-000000000004
                     version: 2
                     attributes: []
-                    requirements:
-                      required:
-                        [
-                          game,
-                          category,
-                          title,
-                          delivery_type,
-                          product_slug,
-                          price_per_unit,
-                          stock_quantity,
-                          min_order_quantity,
-                          delivery_instructions,
-                          delivery_method,
-                        ]
-                      delivery_types:
-                        - value: manual
-                          required: [manual_delivery_value, manual_delivery_unit]
-                      min_images: 0
         "404": { $ref: "#/components/responses/NotFound" }
 
   /v1/offers/games/{game}/categories/{category_slug}/products:
@@ -305,8 +280,9 @@ paths:
       summary: List delivery methods
       description: |
         The global list a listing's `delivery_method` is picked from. A
-        category may narrow it — the schema's `requirements.delivery_types[]`
-        says which keys it accepts.
+        category narrows it: a top-up or a gift card delivered instantly takes
+        `activation_code` and nothing else, and a category whose create body
+        has no `delivery_method` at all picks none.
       security: []
       responses:
         "200":
@@ -2005,7 +1981,13 @@ components:
         icon_url: { type: [string, "null"], format: uri }
         hero_url: { type: [string, "null"], format: uri }
         pack_icon_url: { type: [string, "null"], format: uri }
-        offer_count: { type: integer, format: int64 }
+        offer_count:
+          type: integer
+          format: int64
+          description: |
+            Active listings, narrowed to the `category` this list was asked
+            for. Counts what a buyer could actually buy: out of stock, and
+            sellers away, are left out.
         created_at: { type: [string, "null"], format: date-time }
 
     GameCategory:
@@ -2054,7 +2036,7 @@ components:
         key: { type: string, examples: [activation_code] }
         label: { type: string }
         description: { type: string }
-        version: { type: integer }
+        version: { type: integer, description: "Bumped when `buyer_fields` change; a listing keeps the version it was created under." }
         buyer_fields:
           type: array
           description: What the buyer is asked for at checkout. You collect nothing yourself.
@@ -2070,7 +2052,9 @@ components:
           type: string
           enum: [string, number, boolean, enum, reference, password]
         required: { type: boolean }
-        filterable: { type: boolean }
+        filterable:
+          type: boolean
+          description: The storefront offers this field as a filter.
         multiple:
           type: boolean
           description: The value is then an array of what `type` describes.
@@ -2084,8 +2068,8 @@ components:
             For `reference` — which catalog to read the allowed ids from, at
             `GET /v1/offers/games/{game_id}/catalog/{attribute_key}`. Equal to
             `key` when absent.
-        min: { type: number }
-        max: { type: number }
+        min: { type: number, description: "For `number` — the smallest value accepted." }
+        max: { type: number, description: "For `number` — the largest." }
       required: [key, label, type, required, filterable]
 
     CategorySchema:
@@ -2100,7 +2084,6 @@ components:
         attributes:
           type: array
           items: { $ref: "#/components/schemas/SchemaField" }
-        requirements: { $ref: "#/components/schemas/CategoryRequirements" }
         created_at: { type: [string, "null"], format: date-time }
 
     OfferBase:
@@ -2127,7 +2110,12 @@ components:
           enum: [draft, active, paused, reserved, sold, removed, archived]
         created_at: { type: [string, "null"], format: date-time }
         updated_at: { type: [string, "null"], format: date-time }
-        published_at: { type: [string, "null"], format: date-time }
+        published_at:
+          type: [string, "null"]
+          format: date-time
+          description: |
+            When `publish` put it on the marketplace. `null` while it is a
+            draft, and written once — pausing and unpausing leave it alone.
 
     FiledUnder:
       type: object
@@ -2140,7 +2128,7 @@ components:
       type: object
       description: The stock of a listing that sells out of encrypted units.
       properties:
-        available_units: { type: integer, format: int64 }
+        available_units: { type: integer, format: int64, description: Units neither reserved nor sold. }
         units:
           type: array
           description: Your own pool — id and status per unit, never the goods.
@@ -2150,7 +2138,13 @@ components:
       type: object
       properties:
         id: { type: string, format: uuid }
-        status: { type: string, enum: [available, reserved, sold, revoked] }
+        status:
+          type: string
+          enum: [available, reserved, sold, revoked]
+          description: |
+            `available` until an order takes it. `revoked` is a unit whose
+            goods reached the buyer and were then refunded — it is wiped, and
+            never sells again.
 
     RowBase:
       type: object
@@ -2158,7 +2152,7 @@ components:
       properties:
         id: { type: string, format: uuid }
         title: { type: string }
-        status: { type: string }
+        status: { type: string, description: The same values an offer's own `status` takes. }
         updated_at: { type: [string, "null"], format: date-time }
         game_name: { type: string }
         game_slug: { type: string }
@@ -2168,8 +2162,14 @@ components:
       type: object
       description: How a listing sold by hand promises to hand over.
       properties:
-        manual_delivery_value: { type: [integer, "null"], format: int32 }
-        manual_delivery_unit: { type: [string, "null"], enum: [minutes, hours, days, null] }
+        manual_delivery_value:
+          type: [integer, "null"]
+          format: int32
+          description: The handover time promised, read together with the unit — `2` and `hours`.
+        manual_delivery_unit:
+          type: [string, "null"]
+          enum: [minutes, hours, days, null]
+          description: What the value counts. Both are `null` on a listing delivered instantly.
 
     FixedPriceCreate:
       type: object
@@ -2198,7 +2198,12 @@ components:
           type: object
           description: The category's own fields — read them from its schema.
           additionalProperties: true
-        delivery_type: { type: string, enum: [instant, manual] }
+        delivery_type:
+          type: string
+          enum: [instant, manual]
+          description: |
+            `instant` hands a unit from the pool over the moment an order is
+            paid. `manual` is you handing over yourself, within the time below.
         units:
           type: array
           description: |
@@ -2209,7 +2214,10 @@ components:
           type: integer
           format: int32
           description: "`delivery_type: manual` only — the handover time you promise."
-        manual_delivery_unit: { type: string, enum: [minutes, hours, days] }
+        manual_delivery_unit:
+          type: string
+          enum: [minutes, hours, days]
+          description: What `manual_delivery_value` counts.
 
     FixedPriceUpdate:
       type: object
@@ -2217,17 +2225,22 @@ components:
       properties:
         title: { type: string, minLength: 8, maxLength: 128 }
         description: { type: string, maxLength: 4096 }
-        price: { type: integer, format: int64 }
+        price: { type: integer, format: int64, description: US cents. }
         images:
           type: array
           maxItems: 10
           items: { type: string, format: uri }
+          description: Replaces the whole gallery.
         tags:
           type: array
           items: { type: string }
+          description: Replaces the whole list.
         attributes:
           type: object
           additionalProperties: true
+          description: |
+            Replaces the whole map — send every field the category asks for,
+            not only the one that changed.
         delivery_type:
           type: string
           enum: [instant, manual]
@@ -2235,8 +2248,12 @@ components:
         units:
           type: array
           items: { type: object }
-        manual_delivery_value: { type: integer, format: int32 }
-        manual_delivery_unit: { type: string, enum: [minutes, hours, days] }
+          description: |
+            Read only when `delivery_type` switches to `instant`, as the pool
+            the listing starts over with. Ignored otherwise: stock is added
+            through `POST .../units`.
+        manual_delivery_value: { type: integer, format: int32, description: The handover time you promise. }
+        manual_delivery_unit: { type: string, enum: [minutes, hours, days], description: What the value counts. }
 
     FixedPriceOffer:
       allOf:
@@ -2244,12 +2261,15 @@ components:
         - { $ref: "#/components/schemas/Delivery" }
         - type: object
           properties:
-            price: { type: integer, format: int64 }
-            currency: { type: string, examples: [USD] }
+            price: { type: integer, format: int64, description: US cents. }
+            currency: { type: string, examples: [USD], description: Always `USD`. }
             images:
               type: array
               items: { type: string, format: uri }
-            delivery_type: { type: string, enum: [instant, manual] }
+            delivery_type:
+              type: string
+              enum: [instant, manual]
+              description: "`instant` sells out of the unit pool; `manual` you hand over yourself."
 
     FixedPriceOfferDetail:
       allOf:
@@ -2262,12 +2282,15 @@ components:
         - { $ref: "#/components/schemas/RowBase" }
         - type: object
           properties:
-            price: { type: integer, format: int64 }
-            currency: { type: string }
+            price: { type: integer, format: int64, description: US cents. }
+            currency: { type: string, description: Always `USD`. }
             images:
               type: array
               items: { type: string, format: uri }
-            delivery_type: { type: string, enum: [instant, manual] }
+            delivery_type:
+              type: string
+              enum: [instant, manual]
+              description: "`instant` sells out of the unit pool; `manual` you hand over yourself."
             stock: { type: integer, description: Units still available. }
 
     TopUpCreate:
@@ -2294,16 +2317,16 @@ components:
         - { $ref: "#/components/schemas/FixedPriceUpdate" }
         - type: object
           properties:
-            delivery_method: { type: string }
-            delivery_instructions: { type: string, maxLength: 2048 }
+            delivery_method: { type: string, description: A key from `GET /v1/offers/delivery-methods`. }
+            delivery_instructions: { type: string, maxLength: 2048, description: What the buyer is told to do at handover. }
 
     TopUpOffer:
       allOf:
         - { $ref: "#/components/schemas/FixedPriceOffer" }
         - type: object
           properties:
-            delivery_method: { type: [string, "null"] }
-            delivery_instructions: { type: string }
+            delivery_method: { type: [string, "null"], description: The key this listing hands over by. }
+            delivery_instructions: { type: string, description: What the buyer is told to do at handover. }
 
     TopUpOfferDetail:
       allOf:
@@ -2316,7 +2339,7 @@ components:
         - { $ref: "#/components/schemas/FixedPriceRow" }
         - type: object
           properties:
-            delivery_method: { type: [string, "null"] }
+            delivery_method: { type: [string, "null"], description: The key this listing hands over by. }
 
     GiftCardCreate:
       type: object
@@ -2325,7 +2348,7 @@ components:
         no delivery type to pick and no handover time to promise.
       required: [game, title, price, delivery_method, units]
       properties:
-        game: { type: string }
+        game: { type: string, description: The game's slug. }
         title: { type: string, minLength: 8, maxLength: 128 }
         description: { type: string, maxLength: 4096 }
         price: { type: integer, format: int64, description: US cents. }
@@ -2340,6 +2363,7 @@ components:
         attributes:
           type: object
           additionalProperties: true
+          description: The category's own fields — read them from its schema.
         delivery_method:
           type: string
           description: A key from `GET /v1/offers/delivery-methods` — `activation_code`.
@@ -2355,33 +2379,33 @@ components:
       properties:
         title: { type: string, minLength: 8, maxLength: 128 }
         description: { type: string, maxLength: 4096 }
-        price: { type: integer, format: int64 }
+        price: { type: integer, format: int64, description: US cents. }
         images:
           type: array
           maxItems: 10
           items: { type: string, format: uri }
+          description: Replaces the whole gallery.
         tags:
           type: array
           items: { type: string }
+          description: Replaces the whole list.
         attributes:
           type: object
           additionalProperties: true
-        delivery_method: { type: string }
-        units:
-          type: array
-          items: { type: object }
+          description: Replaces the whole map — send every field, not only the changed one.
+        delivery_method: { type: string, description: A key from `GET /v1/offers/delivery-methods` — `activation_code`. }
 
     GiftCardOffer:
       allOf:
         - { $ref: "#/components/schemas/OfferBase" }
         - type: object
           properties:
-            price: { type: integer, format: int64 }
-            currency: { type: string, examples: [USD] }
+            price: { type: integer, format: int64, description: US cents. }
+            currency: { type: string, examples: [USD], description: Always `USD`. }
             images:
               type: array
               items: { type: string, format: uri }
-            delivery_method: { type: [string, "null"] }
+            delivery_method: { type: [string, "null"], description: The key this listing hands over by. }
 
     GiftCardOfferDetail:
       allOf:
@@ -2394,12 +2418,12 @@ components:
         - { $ref: "#/components/schemas/RowBase" }
         - type: object
           properties:
-            price: { type: integer, format: int64 }
-            currency: { type: string }
+            price: { type: integer, format: int64, description: US cents. }
+            currency: { type: string, description: Always `USD`. }
             images:
               type: array
               items: { type: string, format: uri }
-            delivery_method: { type: [string, "null"] }
+            delivery_method: { type: [string, "null"], description: The key this listing hands over by. }
             stock: { type: integer, description: Codes still available. }
 
     CurrencyCreate:
@@ -2413,7 +2437,7 @@ components:
         [game, title, product_slug, price_per_unit, stock_quantity, min_order_quantity,
          delivery_method, delivery_instructions, manual_delivery_value, manual_delivery_unit]
       properties:
-        game: { type: string }
+        game: { type: string, description: The game's slug. }
         title: { type: string, minLength: 8, maxLength: 128 }
         description: { type: string, maxLength: 4096 }
         tags:
@@ -2422,16 +2446,17 @@ components:
         attributes:
           type: object
           additionalProperties: true
+          description: The category's own fields — read them from its schema.
         product_slug:
           type: string
           description: One of the game category's products — `GET .../products`.
         price_per_unit: { type: integer, format: int64, description: US cents per one of the product's `scale`. }
-        stock_quantity: { type: integer, format: int64 }
+        stock_quantity: { type: integer, format: int64, description: "How much you have, counted in the product's `scale`." }
         min_order_quantity: { type: integer, format: int64, description: The smallest order you will take. }
-        delivery_method: { type: string }
-        delivery_instructions: { type: string, maxLength: 2048 }
-        manual_delivery_value: { type: integer, format: int32 }
-        manual_delivery_unit: { type: string, enum: [minutes, hours, days] }
+        delivery_method: { type: string, description: A key from `GET /v1/offers/delivery-methods`. }
+        delivery_instructions: { type: string, maxLength: 2048, description: "What the buyer is told to do at handover, in your words." }
+        manual_delivery_value: { type: integer, format: int32, description: The handover time you promise. }
+        manual_delivery_unit: { type: string, enum: [minutes, hours, days], description: What the value counts. }
 
     CurrencyUpdate:
       type: object
@@ -2444,16 +2469,18 @@ components:
         tags:
           type: array
           items: { type: string }
+          description: Replaces the whole list.
         attributes:
           type: object
           additionalProperties: true
-        price_per_unit: { type: integer, format: int64 }
-        stock_quantity: { type: integer, format: int64 }
-        min_order_quantity: { type: integer, format: int64 }
-        delivery_method: { type: string }
-        delivery_instructions: { type: string, maxLength: 2048 }
-        manual_delivery_value: { type: integer, format: int32 }
-        manual_delivery_unit: { type: string, enum: [minutes, hours, days] }
+          description: Replaces the whole map — send every field, not only the changed one.
+        price_per_unit: { type: integer, format: int64, description: US cents per one of the product's `scale`. }
+        stock_quantity: { type: integer, format: int64, description: "What you have left, in the product's `scale` — restocking is this field." }
+        min_order_quantity: { type: integer, format: int64, description: The smallest order you will take. }
+        delivery_method: { type: string, description: A key from `GET /v1/offers/delivery-methods`. }
+        delivery_instructions: { type: string, maxLength: 2048, description: What the buyer is told to do at handover. }
+        manual_delivery_value: { type: integer, format: int32, description: The handover time you promise. }
+        manual_delivery_unit: { type: string, enum: [minutes, hours, days], description: What the value counts. }
 
     CurrencyOffer:
       allOf:
@@ -2461,13 +2488,13 @@ components:
         - { $ref: "#/components/schemas/Delivery" }
         - type: object
           properties:
-            currency: { type: string, examples: [USD] }
-            product_id: { type: [string, "null"], format: uuid }
-            price_per_unit: { type: [integer, "null"], format: int64 }
-            stock_quantity: { type: [integer, "null"], format: int64 }
-            min_order_quantity: { type: [integer, "null"], format: int64 }
-            delivery_method: { type: [string, "null"] }
-            delivery_instructions: { type: string }
+            currency: { type: string, examples: [USD], description: Always `USD`. }
+            product_id: { type: [string, "null"], format: uuid, description: "The product this listing sells, from `GET .../products`." }
+            price_per_unit: { type: [integer, "null"], format: int64, description: US cents per one of the product's scale. }
+            stock_quantity: { type: [integer, "null"], format: int64, description: "What is left, in that same scale." }
+            min_order_quantity: { type: [integer, "null"], format: int64, description: The smallest order this listing takes. }
+            delivery_method: { type: [string, "null"], description: The key this listing hands over by. }
+            delivery_instructions: { type: string, description: What the buyer is told to do at handover. }
 
     CurrencyOfferDetail:
       allOf:
@@ -2484,8 +2511,8 @@ components:
         - { $ref: "#/components/schemas/RowBase" }
         - type: object
           properties:
-            currency: { type: string }
-            price_per_unit: { type: [integer, "null"], format: int64 }
-            stock_quantity: { type: [integer, "null"], format: int64 }
-            product_scale: { type: [string, "null"] }
-            delivery_method: { type: [string, "null"] }
+            currency: { type: string, description: Always `USD`. }
+            price_per_unit: { type: [integer, "null"], format: int64, description: US cents per one of the product's scale. }
+            stock_quantity: { type: [integer, "null"], format: int64, description: "What is left, in that same scale." }
+            product_scale: { type: [string, "null"], description: "What one unit means — `unit`, `thousand` or `million`." }
+            delivery_method: { type: [string, "null"], description: The key this listing hands over by. }
