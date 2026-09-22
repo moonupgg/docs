@@ -1372,7 +1372,7 @@ components:
         The body or a parameter is wrong. `error` names which rule — e.g.
         `delivery_instructions_required`, `bulk_fields_required`,
         `instant_requires_activation_code`, `title_too_short`,
-        `invalid_attributes`, `invalid_image`.
+        `invalid_attributes`, `invalid_image`, `invalid_tags`.
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
@@ -1653,7 +1653,9 @@ components:
             anywhere else is refused (`invalid_image`).
         tags:
           type: array
-          items: { type: string }
+          maxItems: 10
+          items: { type: string, maxLength: 32 }
+          description: Up to 10, each up to 32 characters, no commas. Stored trimmed, lower-cased and deduplicated.
         attributes:
           type: object
           description: The category's own fields — read them from its schema.
@@ -1693,8 +1695,9 @@ components:
           description: Replaces the whole gallery.
         tags:
           type: array
-          items: { type: string }
-          description: Replaces the whole list.
+          maxItems: 10
+          items: { type: string, maxLength: 32 }
+          description: Replaces the whole list. Same limits as on create.
         attributes:
           type: object
           additionalProperties: true
@@ -1819,7 +1822,9 @@ components:
           description: Optional — the marketplace renders the pack tile.
         tags:
           type: array
-          items: { type: string }
+          maxItems: 10
+          items: { type: string, maxLength: 32 }
+          description: Up to 10, each up to 32 characters, no commas. Stored trimmed, lower-cased and deduplicated.
         attributes:
           type: object
           additionalProperties: true
@@ -1847,8 +1852,9 @@ components:
           description: Replaces the whole gallery.
         tags:
           type: array
-          items: { type: string }
-          description: Replaces the whole list.
+          maxItems: 10
+          items: { type: string, maxLength: 32 }
+          description: Replaces the whole list. Same limits as on create.
         attributes:
           type: object
           additionalProperties: true
@@ -1902,7 +1908,9 @@ components:
         description: { type: string, maxLength: 4096 }
         tags:
           type: array
-          items: { type: string }
+          maxItems: 10
+          items: { type: string, maxLength: 32 }
+          description: Up to 10, each up to 32 characters, no commas. Stored trimmed, lower-cased and deduplicated.
         attributes:
           type: object
           additionalProperties: true
@@ -1928,8 +1936,9 @@ components:
         description: { type: string, maxLength: 4096 }
         tags:
           type: array
-          items: { type: string }
-          description: Replaces the whole list.
+          maxItems: 10
+          items: { type: string, maxLength: 32 }
+          description: Replaces the whole list. Same limits as on create.
         attributes:
           type: object
           additionalProperties: true
