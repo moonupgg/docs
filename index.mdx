@@ -61,9 +61,16 @@ HTTPS only, and every path is versioned: `/v1/...`.
 
 ## Statuses
 
-A new offer is `pending_moderation` — it is submitted as it is created, and
-there is no draft. Moderation makes it `active`, or `rejected` with a reason.
-Editing a rejected offer is how you resubmit it; there is no separate call.
+A new offer is a `draft`: yours, and nobody else's to see. `publish` makes it
+`active`, and buyers can buy it from that moment — nothing reviews it first.
+Publishing an offer with nothing left to sell is refused with `409`: add stock
+first. Editing changes nothing about where an offer stands — an `active` one
+stays live, a `draft` stays a draft.
+
+`paused` is yours too, through pause and unpause. `archived` is the end of the
+line: `DELETE` retires an offer for good and keeps it readable to you.
+`reserved` and `sold` follow orders, not calls. `removed` is a takedown after
+the fact, which no call in this API performs.
 
 ## Prices
 

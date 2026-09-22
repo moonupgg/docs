@@ -54,19 +54,20 @@ info:
     4. `POST /v1/offers/images/upload-url`, then PUT the bytes to the URL it
        returns. Repeat per picture, collect the public URLs. Skip it for a
        category with no gallery.
-    5. `POST /v1/offers/{category}` — the listing goes straight to moderation.
+    5. `POST /v1/offers/{category}` — the listing is created as a `draft`.
+    6. `POST /v1/offers/{category}/{id}/publish` — it goes on the marketplace.
 
     ## Statuses
 
-    A new listing is `pending_moderation`. Moderation makes it `active`, or
-    `rejected` with a `rejection_reason_code` and a note. Editing a rejected
-    listing is how you resubmit it — there is no separate call. Editing an
-    `active` one sends it back to moderation too, unless all you changed was
-    the price or the stock.
+    A new listing is a `draft`: yours, and nobody else's to see. `publish`
+    makes it `active`, and buyers can buy it from that moment — nothing reviews
+    it first. Editing changes nothing about where a listing stands: an `active`
+    one stays live, a `draft` stays a draft.
 
-    `paused` is yours, through pause and unpause. `archived` is the end of the
-    line: `DELETE` retires a listing for good and keeps it readable to you.
-    `reserved` and `sold` follow orders, not calls.
+    `paused` is yours too, through pause and unpause. `archived` is the end of
+    the line: `DELETE` retires a listing for good and keeps it readable to you.
+    `reserved` and `sold` follow orders, not calls. `removed` is a takedown
+    after the fact, which no call in this API performs.
 
     ## Rate limits
 
@@ -325,8 +326,7 @@ paths:
       operationId: createFixedPriceOffer_accounts
       summary: Create a game account listing
       description: |
-        The listing goes to moderation as it is created — there is no draft to
-        submit afterwards.
+        Created as a `draft` — nobody but you can see it until you publish it.
       requestBody:
         required: true
         content:
@@ -391,7 +391,7 @@ paths:
     get:
       tags: [Accounts]
       operationId: getFixedPriceOffer_accounts
-      summary: Read one of your accounts listings
+      summary: Get one of your accounts listings
       description: |
         Any status, including what is left of its stock. A listing filed under
         another category answers `404`, like one that is not yours.
@@ -414,9 +414,8 @@ paths:
         Sending `images` or `tags` replaces the whole list rather than adding
         to it.
 
-        Editing a `rejected` listing resubmits it. Editing an `active` or
-        `paused` one sends it back to moderation, unless the only thing that
-        changed was the price or the stock.
+        Editing leaves the listing where it stands: an `active` one stays
+        live, a `draft` stays a draft.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       requestBody:
@@ -456,6 +455,29 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
+  /v1/offers/accounts/{id}/publish:
+    post:
+      tags: [Accounts]
+      operationId: publishFixedPriceOffer_accounts
+      summary: Publish one of your accounts draft listings
+      description: |
+        Puts a `draft` on the marketplace. Buyers can see and buy it the moment
+        this returns — nothing reviews it first.
+
+        A listing with nothing left to sell is refused with `409`: add stock
+        first.
+      parameters:
+        - { $ref: "#/components/parameters/OfferID" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FixedPriceOffer" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
   /v1/offers/accounts/{id}/pause:
     post:
       tags: [Accounts]
@@ -479,7 +501,7 @@ paths:
       tags: [Accounts]
       operationId: unpauseFixedPriceOffer_accounts
       summary: Unpause one of your accounts listings
-      description: Back on the marketplace, with no second moderation pass — nothing about it changed while it was away.
+      description: Back on the marketplace, exactly as it was when you paused it.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -572,8 +594,7 @@ paths:
       operationId: createFixedPriceOffer_items
       summary: Create an in-game item listing
       description: |
-        The listing goes to moderation as it is created — there is no draft to
-        submit afterwards.
+        Created as a `draft` — nobody but you can see it until you publish it.
       requestBody:
         required: true
         content:
@@ -638,7 +659,7 @@ paths:
     get:
       tags: [Items]
       operationId: getFixedPriceOffer_items
-      summary: Read one of your items listings
+      summary: Get one of your items listings
       description: |
         Any status, including what is left of its stock. A listing filed under
         another category answers `404`, like one that is not yours.
@@ -661,9 +682,8 @@ paths:
         Sending `images` or `tags` replaces the whole list rather than adding
         to it.
 
-        Editing a `rejected` listing resubmits it. Editing an `active` or
-        `paused` one sends it back to moderation, unless the only thing that
-        changed was the price or the stock.
+        Editing leaves the listing where it stands: an `active` one stays
+        live, a `draft` stays a draft.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       requestBody:
@@ -703,6 +723,29 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
+  /v1/offers/items/{id}/publish:
+    post:
+      tags: [Items]
+      operationId: publishFixedPriceOffer_items
+      summary: Publish one of your items draft listings
+      description: |
+        Puts a `draft` on the marketplace. Buyers can see and buy it the moment
+        this returns — nothing reviews it first.
+
+        A listing with nothing left to sell is refused with `409`: add stock
+        first.
+      parameters:
+        - { $ref: "#/components/parameters/OfferID" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FixedPriceOffer" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
   /v1/offers/items/{id}/pause:
     post:
       tags: [Items]
@@ -726,7 +769,7 @@ paths:
       tags: [Items]
       operationId: unpauseFixedPriceOffer_items
       summary: Unpause one of your items listings
-      description: Back on the marketplace, with no second moderation pass — nothing about it changed while it was away.
+      description: Back on the marketplace, exactly as it was when you paused it.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -819,8 +862,7 @@ paths:
       operationId: createFixedPriceOffer_boosting
       summary: Create a boosting service listing
       description: |
-        The listing goes to moderation as it is created — there is no draft to
-        submit afterwards.
+        Created as a `draft` — nobody but you can see it until you publish it.
       requestBody:
         required: true
         content:
@@ -885,7 +927,7 @@ paths:
     get:
       tags: [Boosting]
       operationId: getFixedPriceOffer_boosting
-      summary: Read one of your boosting listings
+      summary: Get one of your boosting listings
       description: |
         Any status, including what is left of its stock. A listing filed under
         another category answers `404`, like one that is not yours.
@@ -908,9 +950,8 @@ paths:
         Sending `images` or `tags` replaces the whole list rather than adding
         to it.
 
-        Editing a `rejected` listing resubmits it. Editing an `active` or
-        `paused` one sends it back to moderation, unless the only thing that
-        changed was the price or the stock.
+        Editing leaves the listing where it stands: an `active` one stays
+        live, a `draft` stays a draft.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       requestBody:
@@ -950,6 +991,29 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
+  /v1/offers/boosting/{id}/publish:
+    post:
+      tags: [Boosting]
+      operationId: publishFixedPriceOffer_boosting
+      summary: Publish one of your boosting draft listings
+      description: |
+        Puts a `draft` on the marketplace. Buyers can see and buy it the moment
+        this returns — nothing reviews it first.
+
+        A listing with nothing left to sell is refused with `409`: add stock
+        first.
+      parameters:
+        - { $ref: "#/components/parameters/OfferID" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FixedPriceOffer" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
   /v1/offers/boosting/{id}/pause:
     post:
       tags: [Boosting]
@@ -973,7 +1037,7 @@ paths:
       tags: [Boosting]
       operationId: unpauseFixedPriceOffer_boosting
       summary: Unpause one of your boosting listings
-      description: Back on the marketplace, with no second moderation pass — nothing about it changed while it was away.
+      description: Back on the marketplace, exactly as it was when you paused it.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -1066,8 +1130,7 @@ paths:
       operationId: createTopUpOffer_top_up
       summary: Create a top-up pack listing
       description: |
-        The listing goes to moderation as it is created — there is no draft to
-        submit afterwards.
+        Created as a `draft` — nobody but you can see it until you publish it.
       requestBody:
         required: true
         content:
@@ -1132,7 +1195,7 @@ paths:
     get:
       tags: [Top-ups]
       operationId: getTopUpOffer_top_up
-      summary: Read one of your top-up listings
+      summary: Get one of your top-up listings
       description: |
         Any status, including what is left of its stock. A listing filed under
         another category answers `404`, like one that is not yours.
@@ -1155,9 +1218,8 @@ paths:
         Sending `images` or `tags` replaces the whole list rather than adding
         to it.
 
-        Editing a `rejected` listing resubmits it. Editing an `active` or
-        `paused` one sends it back to moderation, unless the only thing that
-        changed was the price or the stock.
+        Editing leaves the listing where it stands: an `active` one stays
+        live, a `draft` stays a draft.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       requestBody:
@@ -1197,6 +1259,29 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
+  /v1/offers/top-up/{id}/publish:
+    post:
+      tags: [Top-ups]
+      operationId: publishTopUpOffer_top_up
+      summary: Publish one of your top-up draft listings
+      description: |
+        Puts a `draft` on the marketplace. Buyers can see and buy it the moment
+        this returns — nothing reviews it first.
+
+        A listing with nothing left to sell is refused with `409`: add stock
+        first.
+      parameters:
+        - { $ref: "#/components/parameters/OfferID" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopUpOffer" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
   /v1/offers/top-up/{id}/pause:
     post:
       tags: [Top-ups]
@@ -1220,7 +1305,7 @@ paths:
       tags: [Top-ups]
       operationId: unpauseTopUpOffer_top_up
       summary: Unpause one of your top-up listings
-      description: Back on the marketplace, with no second moderation pass — nothing about it changed while it was away.
+      description: Back on the marketplace, exactly as it was when you paused it.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -1313,8 +1398,7 @@ paths:
       operationId: createGiftCardOffer_gift_card
       summary: Create a gift card listing
       description: |
-        The listing goes to moderation as it is created — there is no draft to
-        submit afterwards.
+        Created as a `draft` — nobody but you can see it until you publish it.
       requestBody:
         required: true
         content:
@@ -1379,7 +1463,7 @@ paths:
     get:
       tags: [Gift cards]
       operationId: getGiftCardOffer_gift_card
-      summary: Read one of your gift-card listings
+      summary: Get one of your gift-card listings
       description: |
         Any status, including what is left of its stock. A listing filed under
         another category answers `404`, like one that is not yours.
@@ -1402,9 +1486,8 @@ paths:
         Sending `images` or `tags` replaces the whole list rather than adding
         to it.
 
-        Editing a `rejected` listing resubmits it. Editing an `active` or
-        `paused` one sends it back to moderation, unless the only thing that
-        changed was the price or the stock.
+        Editing leaves the listing where it stands: an `active` one stays
+        live, a `draft` stays a draft.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       requestBody:
@@ -1444,6 +1527,29 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
+  /v1/offers/gift-card/{id}/publish:
+    post:
+      tags: [Gift cards]
+      operationId: publishGiftCardOffer_gift_card
+      summary: Publish one of your gift-card draft listings
+      description: |
+        Puts a `draft` on the marketplace. Buyers can see and buy it the moment
+        this returns — nothing reviews it first.
+
+        A listing with nothing left to sell is refused with `409`: add stock
+        first.
+      parameters:
+        - { $ref: "#/components/parameters/OfferID" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GiftCardOffer" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
   /v1/offers/gift-card/{id}/pause:
     post:
       tags: [Gift cards]
@@ -1467,7 +1573,7 @@ paths:
       tags: [Gift cards]
       operationId: unpauseGiftCardOffer_gift_card
       summary: Unpause one of your gift-card listings
-      description: Back on the marketplace, with no second moderation pass — nothing about it changed while it was away.
+      description: Back on the marketplace, exactly as it was when you paused it.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -1560,8 +1666,7 @@ paths:
       operationId: createCurrencyOffer_currency
       summary: Create in-game currency listing
       description: |
-        The listing goes to moderation as it is created — there is no draft to
-        submit afterwards.
+        Created as a `draft` — nobody but you can see it until you publish it.
       requestBody:
         required: true
         content:
@@ -1626,7 +1731,7 @@ paths:
     get:
       tags: [Currency]
       operationId: getCurrencyOffer_currency
-      summary: Read one of your currency listings
+      summary: Get one of your currency listings
       description: |
         Any status, including what is left of its stock. A listing filed under
         another category answers `404`, like one that is not yours.
@@ -1649,9 +1754,8 @@ paths:
         Sending `images` or `tags` replaces the whole list rather than adding
         to it.
 
-        Editing a `rejected` listing resubmits it. Editing an `active` or
-        `paused` one sends it back to moderation, unless the only thing that
-        changed was the price or the stock.
+        Editing leaves the listing where it stands: an `active` one stays
+        live, a `draft` stays a draft.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       requestBody:
@@ -1691,6 +1795,29 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
+  /v1/offers/currency/{id}/publish:
+    post:
+      tags: [Currency]
+      operationId: publishCurrencyOffer_currency
+      summary: Publish one of your currency draft listings
+      description: |
+        Puts a `draft` on the marketplace. Buyers can see and buy it the moment
+        this returns — nothing reviews it first.
+
+        A listing with nothing left to sell is refused with `409`: add stock
+        first.
+      parameters:
+        - { $ref: "#/components/parameters/OfferID" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CurrencyOffer" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
   /v1/offers/currency/{id}/pause:
     post:
       tags: [Currency]
@@ -1714,7 +1841,7 @@ paths:
       tags: [Currency]
       operationId: unpauseCurrencyOffer_currency
       summary: Unpause one of your currency listings
-      description: Back on the marketplace, with no second moderation pass — nothing about it changed while it was away.
+      description: Back on the marketplace, exactly as it was when you paused it.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -1993,22 +2120,14 @@ components:
         status:
           type: string
           description: |
-            `pending_moderation` on create, then `active` or `rejected`.
-            `paused` and `archived` are yours, through pause and `DELETE`.
-            `reserved` and `sold` follow an order. `removed` is a moderation
-            takedown after publishing, which no call in this API performs.
-          enum: [pending_moderation, active, paused, reserved, sold, rejected, removed, archived]
+            `draft` on create, then `active` once you publish it. `paused` and
+            `archived` are yours too, through pause and `DELETE`. `reserved`
+            and `sold` follow an order. `removed` is a takedown after
+            publishing, which no call in this API performs.
+          enum: [draft, active, paused, reserved, sold, removed, archived]
         created_at: { type: [string, "null"], format: date-time }
         updated_at: { type: [string, "null"], format: date-time }
         published_at: { type: [string, "null"], format: date-time }
-        rejection_reason_code:
-          type: [string, "null"]
-          description: |
-            Why moderation refused the last version, if it ever did. It stays
-            on the listing after you resubmit, so read it together with
-            `status`.
-          enum: [prohibited_item, misleading_description, stolen_images, invalid_price, insufficient_details, other, null]
-        rejection_note: { type: [string, "null"] }
 
     FiledUnder:
       type: object
@@ -2041,8 +2160,6 @@ components:
         title: { type: string }
         status: { type: string }
         updated_at: { type: [string, "null"], format: date-time }
-        rejection_reason_code: { type: [string, "null"] }
-        rejection_note: { type: [string, "null"] }
         game_name: { type: string }
         game_slug: { type: string }
         game_icon_url: { type: [string, "null"], format: uri }
@@ -2320,8 +2437,7 @@ components:
       type: object
       description: |
         Every field optional; absent means "leave unchanged". Repricing and
-        restocking here are ordinary edits, and neither sends the listing back
-        to moderation.
+        restocking here are ordinary edits.
       properties:
         title: { type: string, minLength: 8, maxLength: 128 }
         description: { type: string, maxLength: 4096 }

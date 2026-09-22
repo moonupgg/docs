@@ -27,19 +27,132 @@
         "groups": [
           {
             "group": "Get started",
-            "pages": ["index", "authentication"]
+            "pages": [
+              "index",
+              "authentication"
+            ]
           }
         ]
       },
       {
         "tab": "API Reference",
-        "openapi": "openapi.yaml"
+        "openapi": "openapi.yaml",
+        "groups": [
+          {
+            "group": "Catalog",
+            "pages": [
+              "GET /v1/offers/games",
+              "GET /v1/offers/games/{game}/categories",
+              "GET /v1/offers/games/{game}/categories/{category_slug}/schema",
+              "GET /v1/offers/games/{game}/categories/{category_slug}/products",
+              "GET /v1/offers/games/{game_id}/catalog/{attribute_key}",
+              "GET /v1/offers/delivery-methods"
+            ]
+          },
+          {
+            "group": "Accounts",
+            "pages": [
+              "GET /v1/offers/accounts/my",
+              "GET /v1/offers/accounts/{id}",
+              "POST /v1/offers/accounts",
+              "POST /v1/offers/accounts/{id}/units",
+              "POST /v1/offers/accounts/{id}/publish",
+              "POST /v1/offers/accounts/{id}/pause",
+              "POST /v1/offers/accounts/{id}/unpause",
+              "PATCH /v1/offers/accounts/{id}",
+              "DELETE /v1/offers/accounts/{id}/units/{unit_id}",
+              "DELETE /v1/offers/accounts/{id}"
+            ]
+          },
+          {
+            "group": "Items",
+            "pages": [
+              "GET /v1/offers/items/my",
+              "GET /v1/offers/items/{id}",
+              "POST /v1/offers/items",
+              "POST /v1/offers/items/{id}/units",
+              "POST /v1/offers/items/{id}/publish",
+              "POST /v1/offers/items/{id}/pause",
+              "POST /v1/offers/items/{id}/unpause",
+              "PATCH /v1/offers/items/{id}",
+              "DELETE /v1/offers/items/{id}/units/{unit_id}",
+              "DELETE /v1/offers/items/{id}"
+            ]
+          },
+          {
+            "group": "Boosting",
+            "pages": [
+              "GET /v1/offers/boosting/my",
+              "GET /v1/offers/boosting/{id}",
+              "POST /v1/offers/boosting",
+              "POST /v1/offers/boosting/{id}/units",
+              "POST /v1/offers/boosting/{id}/publish",
+              "POST /v1/offers/boosting/{id}/pause",
+              "POST /v1/offers/boosting/{id}/unpause",
+              "PATCH /v1/offers/boosting/{id}",
+              "DELETE /v1/offers/boosting/{id}/units/{unit_id}",
+              "DELETE /v1/offers/boosting/{id}"
+            ]
+          },
+          {
+            "group": "Top-ups",
+            "pages": [
+              "GET /v1/offers/top-up/my",
+              "GET /v1/offers/top-up/{id}",
+              "POST /v1/offers/top-up",
+              "POST /v1/offers/top-up/{id}/units",
+              "POST /v1/offers/top-up/{id}/publish",
+              "POST /v1/offers/top-up/{id}/pause",
+              "POST /v1/offers/top-up/{id}/unpause",
+              "PATCH /v1/offers/top-up/{id}",
+              "DELETE /v1/offers/top-up/{id}/units/{unit_id}",
+              "DELETE /v1/offers/top-up/{id}"
+            ]
+          },
+          {
+            "group": "Gift cards",
+            "pages": [
+              "GET /v1/offers/gift-card/my",
+              "GET /v1/offers/gift-card/{id}",
+              "POST /v1/offers/gift-card",
+              "POST /v1/offers/gift-card/{id}/units",
+              "POST /v1/offers/gift-card/{id}/publish",
+              "POST /v1/offers/gift-card/{id}/pause",
+              "POST /v1/offers/gift-card/{id}/unpause",
+              "PATCH /v1/offers/gift-card/{id}",
+              "DELETE /v1/offers/gift-card/{id}/units/{unit_id}",
+              "DELETE /v1/offers/gift-card/{id}"
+            ]
+          },
+          {
+            "group": "Currency",
+            "pages": [
+              "GET /v1/offers/currency/my",
+              "GET /v1/offers/currency/{id}",
+              "POST /v1/offers/currency",
+              "POST /v1/offers/currency/{id}/publish",
+              "POST /v1/offers/currency/{id}/pause",
+              "POST /v1/offers/currency/{id}/unpause",
+              "PATCH /v1/offers/currency/{id}",
+              "DELETE /v1/offers/currency/{id}"
+            ]
+          },
+          {
+            "group": "Pictures",
+            "pages": [
+              "POST /v1/offers/images/upload-url"
+            ]
+          }
+        ]
       }
     ]
   },
   "navbar": {
     "links": [
-      { "label": "moonup.gg", "href": "https://moonup.gg" }
+      {
+        "label": "moonup.gg",
+        "href": "https://moonup.gg"
+      }
     ]
   },
   "footer": {
