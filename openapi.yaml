@@ -1305,9 +1305,10 @@ paths:
         - lang: bash
           label: cURL
           source: |
-            curl -X POST https://api.moonup.gg/v1/offers/images \
-              -H "Authorization: Bearer $MOONUP_API_KEY" \
-              -H "Content-Type: image/png" \
+            curl --request POST \
+              --url https://api.moonup.gg/v1/offers/images \
+              --header 'Authorization: Bearer <token>' \
+              --header 'Content-Type: image/png' \
               --data-binary @cover.png
       requestBody:
         required: true
