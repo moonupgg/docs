@@ -2,3 +2,24 @@ img.nav-logo {
   height: 2.25rem !important;
   width: auto !important;
 }
+
+/* Language flags; Mintlify has no per-language icon setting. */
+#localization-select-trigger::before,
+[id^="localization-select-item-"]::before {
+  content: "";
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: center / cover no-repeat;
+}
+html[lang="ru"] #localization-select-trigger::before,
+#localization-select-item-ru::before { background-image: url("/flags/ru.svg"); }
+html[lang="en"] #localization-select-trigger::before,
+#localization-select-item-en::before { background-image: url("/flags/gb.svg"); }
+
+/* Switcher lives in the logo block; pin it to the right edge of the header row. */
+div:has(> #localization-select-trigger) {
+  position: absolute;
+  right: 0;
+}
