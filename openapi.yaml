@@ -1295,9 +1295,9 @@ paths:
       tags: [Pictures]
       summary: Upload a picture
       description: |
-        The body is the picture itself — a JPEG or a PNG, up to 10 MiB and
-        4096×4096 pixels. It is stored re-encoded as a JPEG, scaled down to
-        1920 pixels on the long side and stripped of metadata.
+        The body is the picture itself — a JPEG or a PNG, up to 4 MiB. It is
+        stored as sent, minus its metadata (EXIF, including GPS and
+        orientation, XMP, comments).
 
             curl -X POST https://api.moonup.gg/v1/offers/images \
               -H "Authorization: Bearer $MOONUP_API_KEY" \
@@ -1324,6 +1324,16 @@ paths:
                   image_url: { type: string, format: uri }
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+        "503":
+          description: |
+            Too many pictures are being processed at once and this one could
+            not start within 10 seconds. Nothing was stored; send it again.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              examples:
+                unavailable:
+                  value: { error: unavailable }
 
 components:
   securitySchemes:
