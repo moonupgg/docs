@@ -51,9 +51,9 @@ info:
     2. `GET /v1/offers/games/{game}/categories` — pick a category.
     3. `GET /v1/offers/games/{game}/categories/{category_slug}/schema` — read
        `attributes`.
-    4. `POST /v1/offers/images/upload-url`, then PUT the bytes to the URL it
-       returns. Repeat per picture, collect the public URLs. Skip it for a
-       category with no gallery.
+    4. `POST /v1/offers/images` with the picture as the body. Repeat per
+       picture, collect the `image_url`s. Skip it for a category with no
+       gallery.
     5. `POST /v1/offers/{category}` — the listing is created as a `draft`.
     6. `POST /v1/offers/{category}/{id}/publish` — it goes on the marketplace.
 
@@ -1290,45 +1290,38 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
-  /v1/offers/images/upload-url:
+  /v1/offers/images:
     post:
       tags: [Pictures]
-      summary: Get an upload URL for a picture
+      summary: Upload a picture
       description: |
-        Mints a presigned `PUT` — the bytes go from your process straight to
-        storage, never through this API. Send the same `Content-Type` and
-        `Content-Length` on the PUT as you declared here, or it is refused.
+        The body is the picture itself — a JPEG or a PNG, up to 10 MiB and
+        4096×4096 pixels. It is stored re-encoded as a JPEG, scaled down to
+        1920 pixels on the long side and stripped of metadata.
 
-        There is no confirm step: sending the returned public URL in `images[]`
-        on create or patch is what attaches it.
+            curl -X POST https://api.moonup.gg/v1/offers/images \
+              -H "Authorization: Bearer $MOONUP_API_KEY" \
+              -H "Content-Type: image/png" \
+              --data-binary @cover.png
+
+        There is no confirm step: sending the returned `image_url` in
+        `images[]` on create or patch is what attaches it.
       requestBody:
         required: true
         content:
-          application/json:
-            schema:
-              type: object
-              required: [content_type, content_length]
-              properties:
-                content_type:
-                  type: string
-                  enum: [image/jpeg, image/png, image/webp]
-                content_length:
-                  type: integer
-                  format: int64
-                  description: Bytes. Bound into the signature, so storage enforces it too.
-            examples:
-              jpeg:
-                value: { content_type: image/jpeg, content_length: 184320 }
+          image/jpeg:
+            schema: { type: string, format: binary }
+          image/png:
+            schema: { type: string, format: binary }
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Stored
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  upload_url: { type: string, format: uri }
-                  expires_in: { type: integer, description: Seconds the URL stays usable. }
+                  image_url: { type: string, format: uri }
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
 
@@ -1648,7 +1641,7 @@ components:
           maxItems: 10
           items: { type: string, format: uri }
           description: |
-            `image_url`s minted by `POST /v1/offers/images/upload-url`. At
+            `image_url`s returned by `POST /v1/offers/images`. At
             least one: it is the cover the marketplace renders. A URL from
             anywhere else is refused (`invalid_image`).
         tags:

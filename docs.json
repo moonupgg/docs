@@ -117,7 +117,7 @@
                   {
                     "group": "Pictures",
                     "pages": [
-                      "POST /v1/offers/images/upload-url"
+                      "POST /v1/offers/images"
                     ]
                   }
                 ]
@@ -219,7 +219,7 @@
                   {
                     "group": "Pictures",
                     "pages": [
-                      "POST /v1/offers/images/upload-url"
+                      "POST /v1/offers/images"
                     ]
                   }
                 ]
