@@ -1299,13 +1299,16 @@ paths:
         stored as sent, minus its metadata (EXIF, including GPS and
         orientation, XMP, comments).
 
+        There is no confirm step: sending the returned `image_url` in
+        `images[]` on create or patch is what attaches it.
+      x-codeSamples:
+        - lang: bash
+          label: cURL
+          source: |
             curl -X POST https://api.moonup.gg/v1/offers/images \
               -H "Authorization: Bearer $MOONUP_API_KEY" \
               -H "Content-Type: image/png" \
               --data-binary @cover.png
-
-        There is no confirm step: sending the returned `image_url` in
-        `images[]` on create or patch is what attaches it.
       requestBody:
         required: true
         content:
