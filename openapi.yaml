@@ -131,13 +131,13 @@ paths:
       parameters:
         - name: category
           in: query
-          description: Only games with this category open.
+          description: Only games with this category open, by the category's `slug`.
           schema: { type: string, examples: [accounts] }
         - name: q
           in: query
           description: Narrow by name.
           schema: { type: string }
-        - { $ref: "#/components/parameters/Limit" }
+        - { $ref: "#/components/parameters/CatalogLimit" }
         - { $ref: "#/components/parameters/Offset" }
       responses:
         "200":
@@ -328,12 +328,15 @@ paths:
       operationId: listFixedPriceOffers_accounts
       summary: List your accounts listings
       description: |
-        Yours in this category, in any status. The seller is the key's own
+        Yours in this category, filtered by `status`. The seller is the key's own
         account — there is no parameter to read someone else's.
       parameters:
         - name: status
           in: query
-          description: Comma-separated. A status nothing matches is an empty list, not an error.
+          description: |
+            Comma-separated, any of `draft`, `active`, `changes_requested`,
+            `sold`, `archived`. Left out, it is every status but `sold`.
+            A status nothing matches is an empty list, not an error.
           schema: { type: string, examples: ["active,draft"] }
         - name: game
           in: query
@@ -358,12 +361,22 @@ paths:
                     items: { $ref: "#/components/schemas/FixedPriceRow" }
                   counts:
                     type: object
-                    description: How many of your listings sit in each status.
-                    additionalProperties: { type: integer }
+                    description: |
+                      How many of your listings sit in each status, keyed by
+                      `status`. Ignores every filter, `status` included, and a
+                      status you have none in is absent rather than `0`.
+                    additionalProperties: { type: integer, format: int64 }
+                    examples: [{ active: 3, draft: 1, sold: 2 }]
                   facets:
-                    type: object
-                    description: The games you actually have listings in.
-                  total: { type: integer, format: int64 }
+                    type: array
+                    description: |
+                      The games you have listings in, in any status. Ignores
+                      every filter, like `counts`.
+                    items: { $ref: "#/components/schemas/Facet" }
+                  total:
+                    type: integer
+                    format: int64
+                    description: How many listings match the filter, across every page.
         "401": { $ref: "#/components/responses/Unauthorized" }
 
   /v1/offers/accounts/{id}:
@@ -578,12 +591,15 @@ paths:
       operationId: listTopUpOffers_top_up
       summary: List your top-up listings
       description: |
-        Yours in this category, in any status. The seller is the key's own
+        Yours in this category, filtered by `status`. The seller is the key's own
         account — there is no parameter to read someone else's.
       parameters:
         - name: status
           in: query
-          description: Comma-separated. A status nothing matches is an empty list, not an error.
+          description: |
+            Comma-separated, any of `draft`, `active`, `changes_requested`,
+            `sold`, `archived`. Left out, it is every status but `sold`.
+            A status nothing matches is an empty list, not an error.
           schema: { type: string, examples: ["active,draft"] }
         - name: game
           in: query
@@ -608,12 +624,22 @@ paths:
                     items: { $ref: "#/components/schemas/TopUpRow" }
                   counts:
                     type: object
-                    description: How many of your listings sit in each status.
-                    additionalProperties: { type: integer }
+                    description: |
+                      How many of your listings sit in each status, keyed by
+                      `status`. Ignores every filter, `status` included, and a
+                      status you have none in is absent rather than `0`.
+                    additionalProperties: { type: integer, format: int64 }
+                    examples: [{ active: 3, draft: 1, sold: 2 }]
                   facets:
-                    type: object
-                    description: The games you actually have listings in.
-                  total: { type: integer, format: int64 }
+                    type: array
+                    description: |
+                      The games you have listings in, in any status. Ignores
+                      every filter, like `counts`.
+                    items: { $ref: "#/components/schemas/Facet" }
+                  total:
+                    type: integer
+                    format: int64
+                    description: How many listings match the filter, across every page.
         "401": { $ref: "#/components/responses/Unauthorized" }
 
   /v1/offers/top-ups/{id}:
@@ -828,12 +854,15 @@ paths:
       operationId: listGiftCardOffers_gift_card
       summary: List your gift-card listings
       description: |
-        Yours in this category, in any status. The seller is the key's own
+        Yours in this category, filtered by `status`. The seller is the key's own
         account — there is no parameter to read someone else's.
       parameters:
         - name: status
           in: query
-          description: Comma-separated. A status nothing matches is an empty list, not an error.
+          description: |
+            Comma-separated, any of `draft`, `active`, `changes_requested`,
+            `sold`, `archived`. Left out, it is every status but `sold`.
+            A status nothing matches is an empty list, not an error.
           schema: { type: string, examples: ["active,draft"] }
         - name: game
           in: query
@@ -858,12 +887,22 @@ paths:
                     items: { $ref: "#/components/schemas/GiftCardRow" }
                   counts:
                     type: object
-                    description: How many of your listings sit in each status.
-                    additionalProperties: { type: integer }
+                    description: |
+                      How many of your listings sit in each status, keyed by
+                      `status`. Ignores every filter, `status` included, and a
+                      status you have none in is absent rather than `0`.
+                    additionalProperties: { type: integer, format: int64 }
+                    examples: [{ active: 3, draft: 1, sold: 2 }]
                   facets:
-                    type: object
-                    description: The games you actually have listings in.
-                  total: { type: integer, format: int64 }
+                    type: array
+                    description: |
+                      The games you have listings in, in any status. Ignores
+                      every filter, like `counts`.
+                    items: { $ref: "#/components/schemas/Facet" }
+                  total:
+                    type: integer
+                    format: int64
+                    description: How many listings match the filter, across every page.
         "401": { $ref: "#/components/responses/Unauthorized" }
 
   /v1/offers/gift-cards/{id}:
@@ -1078,12 +1117,15 @@ paths:
       operationId: listCurrencyOffers_currency
       summary: List your currency listings
       description: |
-        Yours in this category, in any status. The seller is the key's own
+        Yours in this category, filtered by `status`. The seller is the key's own
         account — there is no parameter to read someone else's.
       parameters:
         - name: status
           in: query
-          description: Comma-separated. A status nothing matches is an empty list, not an error.
+          description: |
+            Comma-separated, any of `draft`, `active`, `changes_requested`,
+            `sold`, `archived`. Left out, it is every status but `sold`.
+            A status nothing matches is an empty list, not an error.
           schema: { type: string, examples: ["active,draft"] }
         - name: game
           in: query
@@ -1108,12 +1150,22 @@ paths:
                     items: { $ref: "#/components/schemas/CurrencyRow" }
                   counts:
                     type: object
-                    description: How many of your listings sit in each status.
-                    additionalProperties: { type: integer }
+                    description: |
+                      How many of your listings sit in each status, keyed by
+                      `status`. Ignores every filter, `status` included, and a
+                      status you have none in is absent rather than `0`.
+                    additionalProperties: { type: integer, format: int64 }
+                    examples: [{ active: 3, draft: 1, sold: 2 }]
                   facets:
-                    type: object
-                    description: The games you actually have listings in.
-                  total: { type: integer, format: int64 }
+                    type: array
+                    description: |
+                      The games you have listings in, in any status. Ignores
+                      every filter, like `counts`.
+                    items: { $ref: "#/components/schemas/Facet" }
+                  total:
+                    type: integer
+                    format: int64
+                    description: How many listings match the filter, across every page.
         "401": { $ref: "#/components/responses/Unauthorized" }
 
   /v1/offers/currency/{id}:
@@ -1292,6 +1344,7 @@ components:
       name: category_slug
       in: path
       required: true
+      description: The category's `slug`, as `GET /v1/offers/games/{game}/categories` returns it.
       schema: { type: string, examples: [accounts] }
     OfferID:
       name: id
@@ -1301,12 +1354,18 @@ components:
     Limit:
       name: limit
       in: query
-      description: Page size. Absent or 0 returns everything.
-      schema: { type: integer, minimum: 0 }
+      description: Page size. Absent or 0 is 20; anything above 100 is 100.
+      schema: { type: integer, minimum: 0, maximum: 100, default: 20 }
+    CatalogLimit:
+      name: limit
+      in: query
+      description: Page size. Absent or 0 returns everything; anything above 100 is 100.
+      schema: { type: integer, minimum: 0, maximum: 100, default: 0 }
     Offset:
       name: offset
       in: query
-      schema: { type: integer, minimum: 0 }
+      description: How many rows to skip.
+      schema: { type: integer, minimum: 0, default: 0 }
 
   responses:
     BadRequest:
@@ -1530,6 +1589,20 @@ components:
           type: [string, "null"]
           description: What moderation wrote to you along with the reason, if anything.
 
+    Facet:
+      type: object
+      description: One game/category pair you have listings under.
+      properties:
+        game_slug: { type: string }
+        game_name: { type: string }
+        game_icon_url: { type: [string, "null"], format: uri }
+        category_slug: { type: string }
+        category_name: { type: string }
+        count:
+          type: integer
+          format: int64
+          description: Your listings under the pair, in any status.
+
     FiledUnder:
       type: object
       description: Which game a listing is under. The category is the path.
@@ -1565,7 +1638,10 @@ components:
       properties:
         id: { type: string, format: uuid }
         title: { type: string }
-        status: { type: string, description: The same values an offer's own `status` takes. }
+        status:
+          type: string
+          enum: [draft, active, changes_requested, sold, archived]
+          description: The same values an offer's own `status` takes.
         updated_at: { type: [string, "null"], format: date-time }
         game_name: { type: string }
         game_slug: { type: string }
@@ -1920,7 +1996,8 @@ components:
           properties:
             product_scale:
               type: [string, "null"]
-              description: What one unit means — `unit`, `thousand` or `million`.
+              enum: [unit, thousand, million, null]
+              description: What one unit of `price_per_unit` and `stock_quantity` means.
 
     CurrencyRow:
       allOf:
@@ -1930,5 +2007,8 @@ components:
             currency: { type: string, description: Always `USD`. }
             price_per_unit: { type: [integer, "null"], format: int64, description: US cents per one of the product's scale. }
             stock_quantity: { type: [integer, "null"], format: int64, description: "What is left, in that same scale." }
-            product_scale: { type: [string, "null"], description: "What one unit means — `unit`, `thousand` or `million`." }
+            product_scale:
+              type: [string, "null"]
+              enum: [unit, thousand, million, null]
+              description: What one unit of `price_per_unit` and `stock_quantity` means.
             delivery_method: { type: [string, "null"], description: The key this listing hands over by. }
