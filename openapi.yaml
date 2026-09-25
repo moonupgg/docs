@@ -359,20 +359,6 @@ paths:
                   offers:
                     type: array
                     items: { $ref: "#/components/schemas/FixedPriceRow" }
-                  counts:
-                    type: object
-                    description: |
-                      How many of your listings sit in each status, keyed by
-                      `status`. Ignores every filter, `status` included, and a
-                      status you have none in is absent rather than `0`.
-                    additionalProperties: { type: integer, format: int64 }
-                    examples: [{ active: 3, draft: 1, sold: 2 }]
-                  facets:
-                    type: array
-                    description: |
-                      The games you have listings in, in any status. Ignores
-                      every filter, like `counts`.
-                    items: { $ref: "#/components/schemas/Facet" }
                   total:
                     type: integer
                     format: int64
@@ -541,7 +527,7 @@ paths:
     delete:
       tags: [Accounts]
       operationId: removeUnitFixedPrice_accounts
-      summary: Remove an unsold unit
+      summary: Delete a unit
       description: |
         Only while the unit is still available. Removing the last available
         one leaves the listing with no stock, which takes it off the
@@ -622,20 +608,6 @@ paths:
                   offers:
                     type: array
                     items: { $ref: "#/components/schemas/TopUpRow" }
-                  counts:
-                    type: object
-                    description: |
-                      How many of your listings sit in each status, keyed by
-                      `status`. Ignores every filter, `status` included, and a
-                      status you have none in is absent rather than `0`.
-                    additionalProperties: { type: integer, format: int64 }
-                    examples: [{ active: 3, draft: 1, sold: 2 }]
-                  facets:
-                    type: array
-                    description: |
-                      The games you have listings in, in any status. Ignores
-                      every filter, like `counts`.
-                    items: { $ref: "#/components/schemas/Facet" }
                   total:
                     type: integer
                     format: int64
@@ -804,7 +776,7 @@ paths:
     delete:
       tags: [Top-ups]
       operationId: removeUnitTopUp_top_up
-      summary: Remove an unsold unit
+      summary: Delete a unit
       description: |
         Only while the unit is still available. Removing the last available
         one leaves the listing with no stock, which takes it off the
@@ -885,20 +857,6 @@ paths:
                   offers:
                     type: array
                     items: { $ref: "#/components/schemas/GiftCardRow" }
-                  counts:
-                    type: object
-                    description: |
-                      How many of your listings sit in each status, keyed by
-                      `status`. Ignores every filter, `status` included, and a
-                      status you have none in is absent rather than `0`.
-                    additionalProperties: { type: integer, format: int64 }
-                    examples: [{ active: 3, draft: 1, sold: 2 }]
-                  facets:
-                    type: array
-                    description: |
-                      The games you have listings in, in any status. Ignores
-                      every filter, like `counts`.
-                    items: { $ref: "#/components/schemas/Facet" }
                   total:
                     type: integer
                     format: int64
@@ -1067,7 +1025,7 @@ paths:
     delete:
       tags: [Gift cards]
       operationId: removeUnitGiftCard_gift_card
-      summary: Remove an unsold unit
+      summary: Delete a unit
       description: |
         Only while the unit is still available. Removing the last available
         one leaves the listing with no stock, which takes it off the
@@ -1148,20 +1106,6 @@ paths:
                   offers:
                     type: array
                     items: { $ref: "#/components/schemas/CurrencyRow" }
-                  counts:
-                    type: object
-                    description: |
-                      How many of your listings sit in each status, keyed by
-                      `status`. Ignores every filter, `status` included, and a
-                      status you have none in is absent rather than `0`.
-                    additionalProperties: { type: integer, format: int64 }
-                    examples: [{ active: 3, draft: 1, sold: 2 }]
-                  facets:
-                    type: array
-                    description: |
-                      The games you have listings in, in any status. Ignores
-                      every filter, like `counts`.
-                    items: { $ref: "#/components/schemas/Facet" }
                   total:
                     type: integer
                     format: int64
@@ -1589,19 +1533,6 @@ components:
           type: [string, "null"]
           description: What moderation wrote to you along with the reason, if anything.
 
-    Facet:
-      type: object
-      description: One game/category pair you have listings under.
-      properties:
-        game_slug: { type: string }
-        game_name: { type: string }
-        game_icon_url: { type: [string, "null"], format: uri }
-        category_slug: { type: string }
-        category_name: { type: string }
-        count:
-          type: integer
-          format: int64
-          description: Your listings under the pair, in any status.
 
     FiledUnder:
       type: object
@@ -1617,7 +1548,9 @@ components:
         available_units: { type: integer, format: int64, description: Units neither reserved nor sold. }
         units:
           type: array
-          description: Your own pool — id and status per unit, never the goods.
+          description: |
+            Your own pool — id and status per unit, never the goods. Only
+            units still in stock or in a deal; sold ones are left out.
           items: { $ref: "#/components/schemas/Unit" }
 
     Unit:
@@ -1626,11 +1559,10 @@ components:
         id: { type: string, format: uuid }
         status:
           type: string
-          enum: [available, reserved, sold, revoked]
+          enum: [available, reserved]
           description: |
-            `available` until an order takes it. `revoked` is a unit whose
-            goods reached the buyer and were then refunded — it is wiped, and
-            never sells again.
+            `available` until an order takes it, `reserved` while the order
+            is open. Once sold, the unit leaves the list.
 
     RowBase:
       type: object
