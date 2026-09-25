@@ -1,0 +1,105 @@
+---
+title: "MoonUP Seller API"
+description: "Plaats en beheer je aanbiedingen vanuit je eigen tools."
+---
+
+Alles wat de integratie van een verkoper nodig heeft om een catalogus met
+aanbiedingen actueel te houden: een aanbieding aanmaken, aanvullen, offline
+halen en archiveren.
+
+Elke categorie heeft haar eigen paden — `/v1/offers/accounts`,
+`/v1/offers/currency` enzovoort — met haar eigen velden. Je integreert met de
+categorieën waarin je verkoopt, en een categorie die later aan het platform
+wordt toegevoegd, laat de jouwe ongemoeid.
+
+Dit is het publieke deel. De eigen schermen van het verkopersdashboard —
+uitbetalingen, geschillen, accountinstellingen — horen er niet bij, en een
+API-sleutel kan er niet bij.
+
+Een *aanbieding* is één advertentie op de marktplaats. De API noemt ze
+`offers`, en de tekst hieronder ook.
+
+## Basis-URL
+
+```
+https://api.moonup.gg
+```
+
+Alleen HTTPS, en elk pad heeft een versie: `/v1/...`.
+
+## Je eerste request
+
+<Steps>
+  <Step title="Maak een sleutel aan">
+    Ga in het verkopersdashboard naar **Verkoper → API-sleutels** en maak er
+    een aan. Hij wordt één keer getoond — kopieer hem dan, je kunt hem daarna
+    niet meer opvragen.
+  </Step>
+  <Step title="Stuur hem mee">
+    De sleutel gaat in de `Authorization`-header van elk request. Je hoeft hem
+    nergens voor in te wisselen.
+
+    ```bash
+    curl -H "Authorization: Bearer $MOONUP_API_KEY" \
+      https://api.moonup.gg/v1/offers/accounts/my
+    ```
+  </Step>
+  <Step title="Bekijk de velden van de categorie">
+    Wat de create-call van een categorie verwacht, staat op haar eigen
+    referentiepagina — een accountaanbieding heeft een prijs en afbeeldingen,
+    een valuta-aanbieding heeft een product en een voorraad. Wat per game
+    verschilt, zijn de `attributes`, en het schema-endpoint geeft die terug:
+    de velden, hun types en welke verplicht zijn.
+
+    ```bash
+    curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
+    ```
+
+    Dit pad accepteert de `slug` van een game. De andere catalogus-paden
+    verwijzen naar een game via de `id` die `GET /v1/offers/games` teruggeeft
+    — een slug geeft daar `400`.
+
+    Catalogus-reads zijn openbaar — je kunt ze verkennen voordat je een
+    sleutel hebt.
+  </Step>
+</Steps>
+
+## Statussen
+
+Een nieuwe aanbieding is een `draft`: van jou, en voor niemand anders
+zichtbaar. `publish` maakt haar `active`, en vanaf dat moment kunnen kopers
+haar kopen — niets beoordeelt haar eerst. Een aanbieding publiceren zonder iets
+te verkopen wordt geweigerd met `409`: voeg eerst voorraad toe. Bewerken
+verandert niets aan de status — een `active` aanbieding blijft live, een
+`draft` blijft een concept.
+
+`unpublish` zet een `active` aanbieding terug naar `draft`. `archived` is het
+eindpunt: `DELETE` haalt een aanbieding definitief weg en houdt haar voor jou
+leesbaar. `sold` volgt bestellingen, geen calls: de laatste eenheid is naar een
+afgesloten bestelling gegaan. Een aanbieding waarvan alle voorraad in open
+bestellingen zit, blijft `active`, en een geannuleerde bestelling zet de
+voorraad terug.
+
+Moderatie kan een live aanbieding terugsturen als `changes_requested`: ze
+verdwijnt van de marktplaats, en `moderation_reason_code` met
+`moderation_note` zeggen wat er aangepast moet worden. Je volgende `PATCH`
+maakt er een `draft` van; `publish` haar zodra ze in orde is. Een aanbieding
+die moderatie verwijdert omdat ze de regels regelrecht overtreedt, wordt
+verwijderd: elke call erop geeft `404`.
+
+## Prijzen
+
+Elke prijs in deze API is een geheel getal in Amerikaanse centen.
+`price: 4990` is $49,90. Er zijn geen fractionele bedragen, en `USD` is de
+enige valuta.
+
+## Verder lezen
+
+<CardGroup cols={2}>
+  <Card title="Authenticatie" icon="key" href="/nl/authentication">
+    Sleutels, adres-allowlists, rate limits en wat de fouten betekenen.
+  </Card>
+  <Card title="API-referentie" icon="square-terminal" href="/nl/api-reference/catalog/list-games">
+    Elk endpoint, met een playground om echte requests vanuit te versturen.
+  </Card>
+</CardGroup>

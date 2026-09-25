@@ -1,0 +1,63 @@
+---
+title: "Autenticação"
+description: "Como uma integração se conecta à MoonUP e o que uma chave alcança."
+---
+
+Uma chave é criada no painel do vendedor, em **Vendedor → Chaves de API**. Ela
+é exibida uma única vez e age em nome da conta até ser revogada.
+
+## Enviando a chave
+
+A chave vai em toda requisição. Não há tokens intermediários pelos quais
+trocá-la.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Somente HTTPS. Uma chave que trafegou por HTTP simples deve ser considerada
+vazada e substituída.
+
+## O que uma chave alcança
+
+As ofertas do próprio vendedor: listá-las (`GET /v1/offers/my`), criar, editar,
+gerenciar unidades, despublicar e arquivar. Tudo o que o painel protege com um
+segundo fator — alterar o e-mail da conta, configurações de 2FA, saques — está
+fora do alcance de uma chave.
+
+## Lista de endereços permitidos
+
+Opcional. Se sua integração roda a partir de endereços fixos, liste-os ao
+criar a chave (um endereço ou uma sub-rede, até 16 entradas) e a chave será
+recusada de qualquer outro lugar. Uma lista vazia significa qualquer endereço.
+
+## Limites de requisições
+
+| Cota | Limite |
+|---|---|
+| Leituras | 500 requisições por minuto |
+| Escritas | 250 requisições por minuto |
+| Escritas em uma oferta | 5 por minuto, 10 por hora |
+
+Ultrapassar retorna `429`. É uma recusa temporária: aguarde e tente de novo, a
+chave continua válida.
+
+## Rotação de chaves
+
+Uma conta pode ter até 5 chaves. Crie a substituta antes de precisar dela:
+aponte sua integração para a nova chave, confirme que funciona e então revogue
+a antiga. Nada precisa sair do ar no meio do caminho.
+
+## Erros
+
+| Código | O que significa |
+|---|---|
+| `401 unauthorized` | A chave é desconhecida, foi revogada ou a requisição veio de um endereço fora da lista permitida. Qual verificação falhou não é revelado |
+| `403 forbidden` | A chave é válida, mas a conta não pode fazer isso — falta a permissão ou ela está suspensa (`account_suspended`) |
+| `429 rate_limited` | Uma das cotas acima foi excedida |

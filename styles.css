@@ -31,6 +31,12 @@ html[lang="zh"] #localization-select-trigger::before,
 #localization-select-item-zh::before { background-image: url("/flags/cn.svg"); }
 html[lang="ja"] #localization-select-trigger::before,
 #localization-select-item-ja::before { background-image: url("/flags/jp.svg"); }
+html[lang="pt"] #localization-select-trigger::before,
+#localization-select-item-pt::before { background-image: url("/flags/br.svg"); }
+html[lang="nl"] #localization-select-trigger::before,
+#localization-select-item-nl::before { background-image: url("/flags/nl.svg"); }
+html[lang="pl"] #localization-select-trigger::before,
+#localization-select-item-pl::before { background-image: url("/flags/pl.svg"); }
 
 /* Switcher lives in the logo block; pin it to the right edge of the header row. */
 div:has(> #localization-select-trigger) {

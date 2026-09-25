@@ -1,0 +1,99 @@
+---
+title: "MoonUP Seller API"
+description: "Wystawiaj oferty i zarządzaj nimi z własnych narzędzi."
+---
+
+Wszystko, czego integracja sprzedawcy potrzebuje, by katalog ofert był
+aktualny: utworzyć ofertę, uzupełnić stan, wycofać ją z publikacji,
+zarchiwizować.
+
+Każda kategoria ma własne ścieżki — `/v1/offers/accounts`,
+`/v1/offers/currency` i tak dalej — z własnymi polami. Integrujesz się z
+kategoriami, w których sprzedajesz, a kategoria dodana do platformy później
+nie zmienia niczego w Twoich.
+
+To jest publiczna część API. Własne ekrany panelu sprzedawcy — wypłaty, spory,
+ustawienia konta — do niej nie należą i klucz API do nich nie sięga.
+
+*Oferta* to jedno ogłoszenie na marketplace. API nazywa je `offers`, podobnie
+jak cały tekst poniżej.
+
+## Bazowy URL
+
+```
+https://api.moonup.gg
+```
+
+Tylko HTTPS, a każda ścieżka ma wersję: `/v1/...`.
+
+## Pierwsze zapytanie
+
+<Steps>
+  <Step title="Utwórz klucz">
+    W panelu sprzedawcy przejdź do **Sprzedawca → Klucze API** i utwórz klucz.
+    Jest pokazywany tylko raz — skopiuj go od razu, później nie da się go
+    odczytać.
+  </Step>
+  <Step title="Wyślij go">
+    Klucz trafia do nagłówka `Authorization` każdego zapytania. Nie trzeba go
+    na nic wymieniać.
+
+    ```bash
+    curl -H "Authorization: Bearer $MOONUP_API_KEY" \
+      https://api.moonup.gg/v1/offers/accounts/my
+    ```
+  </Step>
+  <Step title="Sprawdź pola kategorii">
+    To, co przyjmuje wywołanie tworzące ofertę w danej kategorii, opisuje jej
+    własna strona referencyjna — oferta konta ma cenę i zdjęcia, oferta waluty
+    ma produkt i stan. Od gry zależą `attributes`, a endpoint schematu je
+    zwraca: pola, ich typy i to, które są wymagane.
+
+    ```bash
+    curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
+    ```
+
+    Ta ścieżka przyjmuje `slug` gry. Pozostałe ścieżki katalogu wskazują grę
+    przez `id` zwracane przez `GET /v1/offers/games` — slug zwraca tam `400`.
+
+    Odczyty katalogu są publiczne — możesz je przeglądać, zanim będziesz mieć
+    klucz.
+  </Step>
+</Steps>
+
+## Statusy
+
+Nowa oferta to `draft`: Twoja i niewidoczna dla nikogo innego. `publish`
+zmienia ją w `active` i od tej chwili kupujący mogą ją kupić — nic jej
+wcześniej nie sprawdza. Publikacja oferty, w której nie ma nic do sprzedania,
+jest odrzucana z `409`: najpierw dodaj stan. Edycja nie zmienia statusu —
+`active` pozostaje na żywo, `draft` pozostaje szkicem.
+
+`unpublish` przenosi ofertę `active` z powrotem do `draft`. `archived` to koniec
+drogi: `DELETE` na stałe wycofuje ofertę i pozostawia ją do odczytu dla Ciebie.
+`sold` wynika z zamówień, nie z wywołań: ostatnia jednostka trafiła do
+zamkniętego zamówienia. Oferta, której cały stan jest w otwartych zamówieniach,
+pozostaje `active`, a anulowane zamówienie zwraca stan.
+
+Moderacja może cofnąć aktywną ofertę jako `changes_requested`: znika ona z
+marketplace, a `moderation_reason_code` z `moderation_note` mówią, co
+poprawić. Twój następny `PATCH` zmienia ją w `draft`; wykonaj `publish`, gdy
+będzie poprawiona. Oferta, którą moderacja usuwa za rażące złamanie zasad,
+zostaje usunięta: każde wywołanie na niej zwraca `404`.
+
+## Ceny
+
+Każda cena w tym API to liczba całkowita w centach amerykańskich.
+`price: 4990` to 49,90 USD. Nie ma kwot ułamkowych, a `USD` jest jedyną
+walutą.
+
+## Co dalej
+
+<CardGroup cols={2}>
+  <Card title="Uwierzytelnianie" icon="key" href="/pl/authentication">
+    Klucze, listy dozwolonych adresów, limity zapytań i znaczenie błędów.
+  </Card>
+  <Card title="Dokumentacja API" icon="square-terminal" href="/pl/api-reference/catalog/list-games">
+    Wszystkie endpointy, z playgroundem do wysyłania prawdziwych zapytań.
+  </Card>
+</CardGroup>

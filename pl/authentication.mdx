@@ -1,0 +1,64 @@
+---
+title: "Uwierzytelnianie"
+description: "Jak integracja łączy się z MoonUP i do czego sięga klucz."
+---
+
+Klucz tworzy się w panelu sprzedawcy w sekcji **Sprzedawca → Klucze API**. Jest
+pokazywany tylko raz i działa w imieniu konta, dopóki nie zostanie
+unieważniony.
+
+## Wysyłanie klucza
+
+Klucz trafia do każdego zapytania. Nie ma pośrednich tokenów, na które trzeba
+by go wymieniać.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Tylko HTTPS. Klucz, który został przesłany zwykłym HTTP, należy uznać za
+ujawniony i wymienić.
+
+## Do czego sięga klucz
+
+Do własnych ofert sprzedawcy: wyświetlania ich listy (`GET /v1/offers/my`),
+tworzenia, edycji, zarządzania jednostkami, wycofywania z publikacji i
+archiwizacji. Wszystko, co panel chroni drugim składnikiem — zmiana adresu
+e-mail konta, ustawienia 2FA, wypłaty — jest poza zasięgiem klucza.
+
+## Lista dozwolonych adresów
+
+Opcjonalna. Jeśli integracja działa ze stałych adresów, podaj je przy
+tworzeniu klucza (adres lub podsieć, do 16 pozycji), a klucz będzie odrzucany
+z każdego innego miejsca. Pusta lista oznacza dowolny adres.
+
+## Limity zapytań
+
+| Pula | Limit |
+|---|---|
+| Odczyty | 500 zapytań na minutę |
+| Zapisy | 250 zapytań na minutę |
+| Zapisy do jednej oferty | 5 na minutę, 10 na godzinę |
+
+Przekroczenie zwraca `429`. To tymczasowa odmowa: odczekaj i spróbuj ponownie,
+klucz pozostaje ważny.
+
+## Wymiana klucza
+
+Konto może mieć do 5 kluczy. Utwórz zastępczy, zanim będzie potrzebny: przełącz
+integrację na nowy klucz, sprawdź, że działa, a potem unieważnij stary. Nic
+nie musi po drodze przestać działać.
+
+## Błędy
+
+| Kod | Co oznacza |
+|---|---|
+| `401 unauthorized` | Klucz jest nieznany, unieważniony albo zapytanie przyszło z adresu spoza listy dozwolonych. Która kontrola zawiodła, nie jest ujawniane |
+| `403 forbidden` | Klucz jest ważny, ale konto nie może tego zrobić — brakuje mu uprawnienia albo jest zawieszone (`account_suspended`) |
+| `429 rate_limited` | Przekroczono jedną z pul powyżej |

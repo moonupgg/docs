@@ -1,0 +1,64 @@
+---
+title: "Authenticatie"
+description: "Hoe een integratie verbinding maakt met MoonUP, en waar een sleutel bij kan."
+---
+
+Een sleutel maak je aan in het verkopersdashboard onder **Verkoper →
+API-sleutels**. Hij wordt één keer getoond en handelt namens het account tot
+hij wordt ingetrokken.
+
+## De sleutel meesturen
+
+De sleutel gaat mee met elk request. Er zijn geen tussenliggende tokens om hem
+voor in te wisselen.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Alleen HTTPS. Een sleutel die over gewoon HTTP is verstuurd, moet je als
+gelekt beschouwen en vervangen.
+
+## Waar een sleutel bij kan
+
+De eigen aanbiedingen van de verkoper: ze opvragen (`GET /v1/offers/my`),
+aanmaken, bewerken, eenheden beheren, offline halen en archiveren. Alles wat
+het dashboard met een tweede factor beveiligt — het e-mailadres van het account
+wijzigen, 2FA-instellingen, opnames — is voor een sleutel onbereikbaar.
+
+## Adres-allowlist
+
+Optioneel. Draait je integratie vanaf vaste adressen, geef die dan op bij het
+aanmaken van de sleutel (een adres of een subnet, maximaal 16 items); vanaf
+elke andere plek wordt de sleutel geweigerd. Een lege lijst betekent elk adres.
+
+## Rate limits
+
+| Budget | Limiet |
+|---|---|
+| Reads | 500 requests per minuut |
+| Writes | 250 requests per minuut |
+| Writes naar één aanbieding | 5 per minuut, 10 per uur |
+
+Wie eroverheen gaat, krijgt `429`. Het is een tijdelijke weigering: wacht en
+probeer het opnieuw, de sleutel blijft geldig.
+
+## Een sleutel vervangen
+
+Een account heeft maximaal 5 sleutels. Maak de vervanger aan voordat je hem
+nodig hebt: laat je integratie de nieuwe sleutel gebruiken, controleer dat het
+werkt en trek daarna de oude in. Er hoeft tussendoor niets plat te gaan.
+
+## Fouten
+
+| Code | Wat het betekent |
+|---|---|
+| `401 unauthorized` | De sleutel is onbekend of ingetrokken, of het request kwam van een adres buiten de allowlist. Welke controle faalde, wordt niet verteld |
+| `403 forbidden` | De sleutel is geldig, maar het account mag dit niet — de rechten ontbreken, of het is geschorst (`account_suspended`) |
+| `429 rate_limited` | Een van de budgetten hierboven is overschreden |

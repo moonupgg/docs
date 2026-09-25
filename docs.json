@@ -1039,6 +1039,342 @@
             ]
           }
         ]
+      },
+      {
+        "language": "pt",
+        "tabs": [
+          {
+            "tab": "Central de ajuda",
+            "groups": [
+              {
+                "group": "Seções",
+                "pages": [
+                  "pt/help/buying",
+                  "pt/help/currency",
+                  "pt/help/boosting",
+                  "pt/help/payments",
+                  "pt/help/trust-safety"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Desenvolvedores",
+            "openapi": {
+              "source": "openapi.yaml",
+              "directory": "pt/api-reference"
+            },
+            "groups": [
+              {
+                "group": "Primeiros passos",
+                "pages": [
+                  "pt/index",
+                  "pt/authentication"
+                ]
+              },
+              {
+                "group": "Endpoints",
+                "pages": [
+                  {
+                    "group": "Catalog",
+                    "pages": [
+                      "GET /v1/offers/games",
+                      "GET /v1/offers/games/{game}/categories",
+                      "GET /v1/offers/games/{game}/categories/{category_slug}/schema",
+                      "GET /v1/offers/games/{game}/categories/{category_slug}/products",
+                      "GET /v1/offers/games/{game_id}/catalog/{attribute_key}",
+                      "GET /v1/offers/delivery-methods"
+                    ]
+                  },
+                  {
+                    "group": "Accounts",
+                    "pages": [
+                      "GET /v1/offers/accounts/my",
+                      "GET /v1/offers/accounts/{id}",
+                      "POST /v1/offers/accounts",
+                      "POST /v1/offers/accounts/{id}/units",
+                      "POST /v1/offers/accounts/{id}/publish",
+                      "POST /v1/offers/accounts/{id}/unpublish",
+                      "PATCH /v1/offers/accounts/{id}",
+                      "DELETE /v1/offers/accounts/{id}/units/{unit_id}",
+                      "DELETE /v1/offers/accounts/{id}"
+                    ]
+                  },
+                  {
+                    "group": "Top-ups",
+                    "pages": [
+                      "GET /v1/offers/top-ups/my",
+                      "GET /v1/offers/top-ups/{id}",
+                      "POST /v1/offers/top-ups",
+                      "POST /v1/offers/top-ups/{id}/units",
+                      "POST /v1/offers/top-ups/{id}/publish",
+                      "POST /v1/offers/top-ups/{id}/unpublish",
+                      "PATCH /v1/offers/top-ups/{id}",
+                      "DELETE /v1/offers/top-ups/{id}/units/{unit_id}",
+                      "DELETE /v1/offers/top-ups/{id}"
+                    ]
+                  },
+                  {
+                    "group": "Gift cards",
+                    "pages": [
+                      "GET /v1/offers/gift-cards/my",
+                      "GET /v1/offers/gift-cards/{id}",
+                      "POST /v1/offers/gift-cards",
+                      "POST /v1/offers/gift-cards/{id}/units",
+                      "POST /v1/offers/gift-cards/{id}/publish",
+                      "POST /v1/offers/gift-cards/{id}/unpublish",
+                      "PATCH /v1/offers/gift-cards/{id}",
+                      "DELETE /v1/offers/gift-cards/{id}/units/{unit_id}",
+                      "DELETE /v1/offers/gift-cards/{id}"
+                    ]
+                  },
+                  {
+                    "group": "Currency",
+                    "pages": [
+                      "GET /v1/offers/currency/my",
+                      "GET /v1/offers/currency/{id}",
+                      "POST /v1/offers/currency",
+                      "POST /v1/offers/currency/{id}/publish",
+                      "POST /v1/offers/currency/{id}/unpublish",
+                      "PATCH /v1/offers/currency/{id}",
+                      "DELETE /v1/offers/currency/{id}"
+                    ]
+                  },
+                  {
+                    "group": "Pictures",
+                    "pages": [
+                      "POST /v1/offers/images"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "language": "nl",
+        "tabs": [
+          {
+            "tab": "Helpcentrum",
+            "groups": [
+              {
+                "group": "Onderdelen",
+                "pages": [
+                  "nl/help/buying",
+                  "nl/help/currency",
+                  "nl/help/boosting",
+                  "nl/help/payments",
+                  "nl/help/trust-safety"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Ontwikkelaars",
+            "openapi": {
+              "source": "openapi.yaml",
+              "directory": "nl/api-reference"
+            },
+            "groups": [
+              {
+                "group": "Aan de slag",
+                "pages": [
+                  "nl/index",
+                  "nl/authentication"
+                ]
+              },
+              {
+                "group": "Endpoints",
+                "pages": [
+                  {
+                    "group": "Catalog",
+                    "pages": [
+                      "GET /v1/offers/games",
+                      "GET /v1/offers/games/{game}/categories",
+                      "GET /v1/offers/games/{game}/categories/{category_slug}/schema",
+                      "GET /v1/offers/games/{game}/categories/{category_slug}/products",
+                      "GET /v1/offers/games/{game_id}/catalog/{attribute_key}",
+                      "GET /v1/offers/delivery-methods"
+                    ]
+                  },
+                  {
+                    "group": "Accounts",
+                    "pages": [
+                      "GET /v1/offers/accounts/my",
+                      "GET /v1/offers/accounts/{id}",
+                      "POST /v1/offers/accounts",
+                      "POST /v1/offers/accounts/{id}/units",
+                      "POST /v1/offers/accounts/{id}/publish",
+                      "POST /v1/offers/accounts/{id}/unpublish",
+                      "PATCH /v1/offers/accounts/{id}",
+                      "DELETE /v1/offers/accounts/{id}/units/{unit_id}",
+                      "DELETE /v1/offers/accounts/{id}"
+                    ]
+                  },
+                  {
+                    "group": "Top-ups",
+                    "pages": [
+                      "GET /v1/offers/top-ups/my",
+                      "GET /v1/offers/top-ups/{id}",
+                      "POST /v1/offers/top-ups",
+                      "POST /v1/offers/top-ups/{id}/units",
+                      "POST /v1/offers/top-ups/{id}/publish",
+                      "POST /v1/offers/top-ups/{id}/unpublish",
+                      "PATCH /v1/offers/top-ups/{id}",
+                      "DELETE /v1/offers/top-ups/{id}/units/{unit_id}",
+                      "DELETE /v1/offers/top-ups/{id}"
+                    ]
+                  },
+                  {
+                    "group": "Gift cards",
+                    "pages": [
+                      "GET /v1/offers/gift-cards/my",
+                      "GET /v1/offers/gift-cards/{id}",
+                      "POST /v1/offers/gift-cards",
+                      "POST /v1/offers/gift-cards/{id}/units",
+                      "POST /v1/offers/gift-cards/{id}/publish",
+                      "POST /v1/offers/gift-cards/{id}/unpublish",
+                      "PATCH /v1/offers/gift-cards/{id}",
+                      "DELETE /v1/offers/gift-cards/{id}/units/{unit_id}",
+                      "DELETE /v1/offers/gift-cards/{id}"
+                    ]
+                  },
+                  {
+                    "group": "Currency",
+                    "pages": [
+                      "GET /v1/offers/currency/my",
+                      "GET /v1/offers/currency/{id}",
+                      "POST /v1/offers/currency",
+                      "POST /v1/offers/currency/{id}/publish",
+                      "POST /v1/offers/currency/{id}/unpublish",
+                      "PATCH /v1/offers/currency/{id}",
+                      "DELETE /v1/offers/currency/{id}"
+                    ]
+                  },
+                  {
+                    "group": "Pictures",
+                    "pages": [
+                      "POST /v1/offers/images"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "language": "pl",
+        "tabs": [
+          {
+            "tab": "Centrum pomocy",
+            "groups": [
+              {
+                "group": "Sekcje",
+                "pages": [
+                  "pl/help/buying",
+                  "pl/help/currency",
+                  "pl/help/boosting",
+                  "pl/help/payments",
+                  "pl/help/trust-safety"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Deweloperzy",
+            "openapi": {
+              "source": "openapi.yaml",
+              "directory": "pl/api-reference"
+            },
+            "groups": [
+              {
+                "group": "Pierwsze kroki",
+                "pages": [
+                  "pl/index",
+                  "pl/authentication"
+                ]
+              },
+              {
+                "group": "Endpoints",
+                "pages": [
+                  {
+                    "group": "Catalog",
+                    "pages": [
+                      "GET /v1/offers/games",
+                      "GET /v1/offers/games/{game}/categories",
+                      "GET /v1/offers/games/{game}/categories/{category_slug}/schema",
+                      "GET /v1/offers/games/{game}/categories/{category_slug}/products",
+                      "GET /v1/offers/games/{game_id}/catalog/{attribute_key}",
+                      "GET /v1/offers/delivery-methods"
+                    ]
+                  },
+                  {
+                    "group": "Accounts",
+                    "pages": [
+                      "GET /v1/offers/accounts/my",
+                      "GET /v1/offers/accounts/{id}",
+                      "POST /v1/offers/accounts",
+                      "POST /v1/offers/accounts/{id}/units",
+                      "POST /v1/offers/accounts/{id}/publish",
+                      "POST /v1/offers/accounts/{id}/unpublish",
+                      "PATCH /v1/offers/accounts/{id}",
+                      "DELETE /v1/offers/accounts/{id}/units/{unit_id}",
+                      "DELETE /v1/offers/accounts/{id}"
+                    ]
+                  },
+                  {
+                    "group": "Top-ups",
+                    "pages": [
+                      "GET /v1/offers/top-ups/my",
+                      "GET /v1/offers/top-ups/{id}",
+                      "POST /v1/offers/top-ups",
+                      "POST /v1/offers/top-ups/{id}/units",
+                      "POST /v1/offers/top-ups/{id}/publish",
+                      "POST /v1/offers/top-ups/{id}/unpublish",
+                      "PATCH /v1/offers/top-ups/{id}",
+                      "DELETE /v1/offers/top-ups/{id}/units/{unit_id}",
+                      "DELETE /v1/offers/top-ups/{id}"
+                    ]
+                  },
+                  {
+                    "group": "Gift cards",
+                    "pages": [
+                      "GET /v1/offers/gift-cards/my",
+                      "GET /v1/offers/gift-cards/{id}",
+                      "POST /v1/offers/gift-cards",
+                      "POST /v1/offers/gift-cards/{id}/units",
+                      "POST /v1/offers/gift-cards/{id}/publish",
+                      "POST /v1/offers/gift-cards/{id}/unpublish",
+                      "PATCH /v1/offers/gift-cards/{id}",
+                      "DELETE /v1/offers/gift-cards/{id}/units/{unit_id}",
+                      "DELETE /v1/offers/gift-cards/{id}"
+                    ]
+                  },
+                  {
+                    "group": "Currency",
+                    "pages": [
+                      "GET /v1/offers/currency/my",
+                      "GET /v1/offers/currency/{id}",
+                      "POST /v1/offers/currency",
+                      "POST /v1/offers/currency/{id}/publish",
+                      "POST /v1/offers/currency/{id}/unpublish",
+                      "PATCH /v1/offers/currency/{id}",
+                      "DELETE /v1/offers/currency/{id}"
+                    ]
+                  },
+                  {
+                    "group": "Pictures",
+                    "pages": [
+                      "POST /v1/offers/images"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       }
     ]
   },
