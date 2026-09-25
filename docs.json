@@ -64,8 +64,7 @@
                       "POST /v1/offers/accounts",
                       "POST /v1/offers/accounts/{id}/units",
                       "POST /v1/offers/accounts/{id}/publish",
-                      "POST /v1/offers/accounts/{id}/pause",
-                      "POST /v1/offers/accounts/{id}/unpause",
+                      "POST /v1/offers/accounts/{id}/unpublish",
                       "PATCH /v1/offers/accounts/{id}",
                       "DELETE /v1/offers/accounts/{id}/units/{unit_id}",
                       "DELETE /v1/offers/accounts/{id}"
@@ -79,8 +78,7 @@
                       "POST /v1/offers/top-up",
                       "POST /v1/offers/top-up/{id}/units",
                       "POST /v1/offers/top-up/{id}/publish",
-                      "POST /v1/offers/top-up/{id}/pause",
-                      "POST /v1/offers/top-up/{id}/unpause",
+                      "POST /v1/offers/top-up/{id}/unpublish",
                       "PATCH /v1/offers/top-up/{id}",
                       "DELETE /v1/offers/top-up/{id}/units/{unit_id}",
                       "DELETE /v1/offers/top-up/{id}"
@@ -94,8 +92,7 @@
                       "POST /v1/offers/gift-card",
                       "POST /v1/offers/gift-card/{id}/units",
                       "POST /v1/offers/gift-card/{id}/publish",
-                      "POST /v1/offers/gift-card/{id}/pause",
-                      "POST /v1/offers/gift-card/{id}/unpause",
+                      "POST /v1/offers/gift-card/{id}/unpublish",
                       "PATCH /v1/offers/gift-card/{id}",
                       "DELETE /v1/offers/gift-card/{id}/units/{unit_id}",
                       "DELETE /v1/offers/gift-card/{id}"
@@ -108,8 +105,7 @@
                       "GET /v1/offers/currency/{id}",
                       "POST /v1/offers/currency",
                       "POST /v1/offers/currency/{id}/publish",
-                      "POST /v1/offers/currency/{id}/pause",
-                      "POST /v1/offers/currency/{id}/unpause",
+                      "POST /v1/offers/currency/{id}/unpublish",
                       "PATCH /v1/offers/currency/{id}",
                       "DELETE /v1/offers/currency/{id}"
                     ]
@@ -166,8 +162,7 @@
                       "POST /v1/offers/accounts",
                       "POST /v1/offers/accounts/{id}/units",
                       "POST /v1/offers/accounts/{id}/publish",
-                      "POST /v1/offers/accounts/{id}/pause",
-                      "POST /v1/offers/accounts/{id}/unpause",
+                      "POST /v1/offers/accounts/{id}/unpublish",
                       "PATCH /v1/offers/accounts/{id}",
                       "DELETE /v1/offers/accounts/{id}/units/{unit_id}",
                       "DELETE /v1/offers/accounts/{id}"
@@ -181,8 +176,7 @@
                       "POST /v1/offers/top-up",
                       "POST /v1/offers/top-up/{id}/units",
                       "POST /v1/offers/top-up/{id}/publish",
-                      "POST /v1/offers/top-up/{id}/pause",
-                      "POST /v1/offers/top-up/{id}/unpause",
+                      "POST /v1/offers/top-up/{id}/unpublish",
                       "PATCH /v1/offers/top-up/{id}",
                       "DELETE /v1/offers/top-up/{id}/units/{unit_id}",
                       "DELETE /v1/offers/top-up/{id}"
@@ -196,8 +190,7 @@
                       "POST /v1/offers/gift-card",
                       "POST /v1/offers/gift-card/{id}/units",
                       "POST /v1/offers/gift-card/{id}/publish",
-                      "POST /v1/offers/gift-card/{id}/pause",
-                      "POST /v1/offers/gift-card/{id}/unpause",
+                      "POST /v1/offers/gift-card/{id}/unpublish",
                       "PATCH /v1/offers/gift-card/{id}",
                       "DELETE /v1/offers/gift-card/{id}/units/{unit_id}",
                       "DELETE /v1/offers/gift-card/{id}"
@@ -210,8 +203,7 @@
                       "GET /v1/offers/currency/{id}",
                       "POST /v1/offers/currency",
                       "POST /v1/offers/currency/{id}/publish",
-                      "POST /v1/offers/currency/{id}/pause",
-                      "POST /v1/offers/currency/{id}/unpause",
+                      "POST /v1/offers/currency/{id}/unpublish",
                       "PATCH /v1/offers/currency/{id}",
                       "DELETE /v1/offers/currency/{id}"
                     ]

@@ -6,7 +6,7 @@ info:
   summary: List and manage your offers from your own tools.
   description: |
     Everything a seller's bot needs to keep a catalogue of listings up to date:
-    create a listing, restock it, pause it, archive it.
+    create a listing, restock it, unpublish it, archive it.
 
     Each category has its own paths — `/v1/offers/accounts`,
     `/v1/offers/currency` and so on — with its own fields. You integrate with
@@ -64,7 +64,7 @@ info:
     it first. Editing changes nothing about where a listing stands: an `active`
     one stays live, a `draft` stays a draft.
 
-    `paused` is yours too, through pause and unpause. `archived` is the end of
+    `unpublish` takes an `active` listing back to `draft`. `archived` is the end of
     the line: `DELETE` retires a listing for good and keeps it readable to you.
     `reserved` and `sold` follow orders, not calls. `removed` is a takedown
     after the fact, which no call in this API performs.
@@ -327,7 +327,7 @@ paths:
         - name: status
           in: query
           description: Comma-separated. A status nothing matches is an empty list, not an error.
-          schema: { type: string, examples: ["active,paused"] }
+          schema: { type: string, examples: ["active,draft"] }
         - name: game
           in: query
           description: Narrow to one game, by slug.
@@ -414,7 +414,7 @@ paths:
       description: |
         Retires the listing for good — it leaves the marketplace, stays
         readable to you, and cannot be brought back. To take it down
-        temporarily, pause it instead.
+        temporarily, unpublish it instead.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -450,30 +450,12 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
-  /v1/offers/accounts/{id}/pause:
+  /v1/offers/accounts/{id}/unpublish:
     post:
       tags: [Accounts]
-      operationId: pauseFixedPriceOffer_accounts
-      summary: Pause one of your accounts listings
-      description: Reversible. Buyers stop seeing the listing; nothing else about it changes.
-      parameters:
-        - { $ref: "#/components/parameters/OfferID" }
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/FixedPriceOffer" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "409": { $ref: "#/components/responses/Conflict" }
-
-  /v1/offers/accounts/{id}/unpause:
-    post:
-      tags: [Accounts]
-      operationId: unpauseFixedPriceOffer_accounts
-      summary: Unpause one of your accounts listings
-      description: Back on the marketplace, exactly as it was when you paused it.
+      operationId: unpublishFixedPriceOffer_accounts
+      summary: Unpublish one of your accounts listings
+      description: Back to `draft`. Buyers stop seeing the listing; `publish` puts it back.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -595,7 +577,7 @@ paths:
         - name: status
           in: query
           description: Comma-separated. A status nothing matches is an empty list, not an error.
-          schema: { type: string, examples: ["active,paused"] }
+          schema: { type: string, examples: ["active,draft"] }
         - name: game
           in: query
           description: Narrow to one game, by slug.
@@ -682,7 +664,7 @@ paths:
       description: |
         Retires the listing for good — it leaves the marketplace, stays
         readable to you, and cannot be brought back. To take it down
-        temporarily, pause it instead.
+        temporarily, unpublish it instead.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -718,30 +700,12 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
-  /v1/offers/top-up/{id}/pause:
+  /v1/offers/top-up/{id}/unpublish:
     post:
       tags: [Top-ups]
-      operationId: pauseTopUpOffer_top_up
-      summary: Pause one of your top-up listings
-      description: Reversible. Buyers stop seeing the listing; nothing else about it changes.
-      parameters:
-        - { $ref: "#/components/parameters/OfferID" }
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/TopUpOffer" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "409": { $ref: "#/components/responses/Conflict" }
-
-  /v1/offers/top-up/{id}/unpause:
-    post:
-      tags: [Top-ups]
-      operationId: unpauseTopUpOffer_top_up
-      summary: Unpause one of your top-up listings
-      description: Back on the marketplace, exactly as it was when you paused it.
+      operationId: unpublishTopUpOffer_top_up
+      summary: Unpublish one of your top-up listings
+      description: Back to `draft`. Buyers stop seeing the listing; `publish` puts it back.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -863,7 +827,7 @@ paths:
         - name: status
           in: query
           description: Comma-separated. A status nothing matches is an empty list, not an error.
-          schema: { type: string, examples: ["active,paused"] }
+          schema: { type: string, examples: ["active,draft"] }
         - name: game
           in: query
           description: Narrow to one game, by slug.
@@ -950,7 +914,7 @@ paths:
       description: |
         Retires the listing for good — it leaves the marketplace, stays
         readable to you, and cannot be brought back. To take it down
-        temporarily, pause it instead.
+        temporarily, unpublish it instead.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -986,30 +950,12 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
-  /v1/offers/gift-card/{id}/pause:
+  /v1/offers/gift-card/{id}/unpublish:
     post:
       tags: [Gift cards]
-      operationId: pauseGiftCardOffer_gift_card
-      summary: Pause one of your gift-card listings
-      description: Reversible. Buyers stop seeing the listing; nothing else about it changes.
-      parameters:
-        - { $ref: "#/components/parameters/OfferID" }
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/GiftCardOffer" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "409": { $ref: "#/components/responses/Conflict" }
-
-  /v1/offers/gift-card/{id}/unpause:
-    post:
-      tags: [Gift cards]
-      operationId: unpauseGiftCardOffer_gift_card
-      summary: Unpause one of your gift-card listings
-      description: Back on the marketplace, exactly as it was when you paused it.
+      operationId: unpublishGiftCardOffer_gift_card
+      summary: Unpublish one of your gift-card listings
+      description: Back to `draft`. Buyers stop seeing the listing; `publish` puts it back.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -1131,7 +1077,7 @@ paths:
         - name: status
           in: query
           description: Comma-separated. A status nothing matches is an empty list, not an error.
-          schema: { type: string, examples: ["active,paused"] }
+          schema: { type: string, examples: ["active,draft"] }
         - name: game
           in: query
           description: Narrow to one game, by slug.
@@ -1218,7 +1164,7 @@ paths:
       description: |
         Retires the listing for good — it leaves the marketplace, stays
         readable to you, and cannot be brought back. To take it down
-        temporarily, pause it instead.
+        temporarily, unpublish it instead.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -1254,30 +1200,12 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
-  /v1/offers/currency/{id}/pause:
+  /v1/offers/currency/{id}/unpublish:
     post:
       tags: [Currency]
-      operationId: pauseCurrencyOffer_currency
-      summary: Pause one of your currency listings
-      description: Reversible. Buyers stop seeing the listing; nothing else about it changes.
-      parameters:
-        - { $ref: "#/components/parameters/OfferID" }
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/CurrencyOffer" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "409": { $ref: "#/components/responses/Conflict" }
-
-  /v1/offers/currency/{id}/unpause:
-    post:
-      tags: [Currency]
-      operationId: unpauseCurrencyOffer_currency
-      summary: Unpause one of your currency listings
-      description: Back on the marketplace, exactly as it was when you paused it.
+      operationId: unpublishCurrencyOffer_currency
+      summary: Unpublish one of your currency listings
+      description: Back to `draft`. Buyers stop seeing the listing; `publish` puts it back.
       parameters:
         - { $ref: "#/components/parameters/OfferID" }
       responses:
@@ -1570,11 +1498,11 @@ components:
         status:
           type: string
           description: |
-            `draft` on create, then `active` once you publish it. `paused` and
-            `archived` are yours too, through pause and `DELETE`. `reserved`
+            `draft` on create, then `active` once you publish it; unpublish
+            takes it back to `draft`. `archived` is yours too, through `DELETE`. `reserved`
             and `sold` follow an order. `removed` is a takedown after
             publishing, which no call in this API performs.
-          enum: [draft, active, paused, reserved, sold, removed, archived]
+          enum: [draft, active, reserved, sold, removed, archived]
         created_at: { type: [string, "null"], format: date-time }
         updated_at: { type: [string, "null"], format: date-time }
         published_at:

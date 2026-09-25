@@ -4,7 +4,7 @@ description: "List and manage your offers from your own tools."
 ---
 
 Everything a seller's integration needs to keep a catalogue of offers up to
-date: create an offer, restock it, pause it, archive it.
+date: create an offer, restock it, unpublish it, archive it.
 
 Each category has its own paths — `/v1/offers/accounts`, `/v1/offers/currency`
 and so on — carrying its own fields. You integrate with the categories you
@@ -67,7 +67,7 @@ Publishing an offer with nothing left to sell is refused with `409`: add stock
 first. Editing changes nothing about where an offer stands — an `active` one
 stays live, a `draft` stays a draft.
 
-`paused` is yours too, through pause and unpause. `archived` is the end of the
+`unpublish` takes an `active` offer back to `draft`. `archived` is the end of the
 line: `DELETE` retires an offer for good and keeps it readable to you.
 `reserved` and `sold` follow orders, not calls. `removed` is a takedown after
 the fact, which no call in this API performs.
