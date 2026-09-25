@@ -542,7 +542,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
 
-  /v1/offers/top-up:
+  /v1/offers/top-ups:
     post:
       tags: [Top-ups]
       operationId: createTopUpOffer_top_up
@@ -565,7 +565,7 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "429": { $ref: "#/components/responses/RateLimited" }
 
-  /v1/offers/top-up/my:
+  /v1/offers/top-ups/my:
     get:
       tags: [Top-ups]
       operationId: listTopUpOffers_top_up
@@ -609,7 +609,7 @@ paths:
                   total: { type: integer, format: int64 }
         "401": { $ref: "#/components/responses/Unauthorized" }
 
-  /v1/offers/top-up/{id}:
+  /v1/offers/top-ups/{id}:
     get:
       tags: [Top-ups]
       operationId: getTopUpOffer_top_up
@@ -677,7 +677,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
-  /v1/offers/top-up/{id}/publish:
+  /v1/offers/top-ups/{id}/publish:
     post:
       tags: [Top-ups]
       operationId: publishTopUpOffer_top_up
@@ -700,7 +700,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
-  /v1/offers/top-up/{id}/unpublish:
+  /v1/offers/top-ups/{id}/unpublish:
     post:
       tags: [Top-ups]
       operationId: unpublishTopUpOffer_top_up
@@ -718,7 +718,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
-  /v1/offers/top-up/{id}/units:
+  /v1/offers/top-ups/{id}/units:
     post:
       tags: [Top-ups]
       operationId: restockTopUpOffer_top_up
@@ -767,7 +767,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "429": { $ref: "#/components/responses/RateLimited" }
 
-  /v1/offers/top-up/{id}/units/{unit_id}:
+  /v1/offers/top-ups/{id}/units/{unit_id}:
     delete:
       tags: [Top-ups]
       operationId: removeUnitTopUp_top_up
@@ -792,7 +792,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
 
-  /v1/offers/gift-card:
+  /v1/offers/gift-cards:
     post:
       tags: [Gift cards]
       operationId: createGiftCardOffer_gift_card
@@ -815,7 +815,7 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "429": { $ref: "#/components/responses/RateLimited" }
 
-  /v1/offers/gift-card/my:
+  /v1/offers/gift-cards/my:
     get:
       tags: [Gift cards]
       operationId: listGiftCardOffers_gift_card
@@ -859,7 +859,7 @@ paths:
                   total: { type: integer, format: int64 }
         "401": { $ref: "#/components/responses/Unauthorized" }
 
-  /v1/offers/gift-card/{id}:
+  /v1/offers/gift-cards/{id}:
     get:
       tags: [Gift cards]
       operationId: getGiftCardOffer_gift_card
@@ -927,7 +927,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
-  /v1/offers/gift-card/{id}/publish:
+  /v1/offers/gift-cards/{id}/publish:
     post:
       tags: [Gift cards]
       operationId: publishGiftCardOffer_gift_card
@@ -950,7 +950,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
-  /v1/offers/gift-card/{id}/unpublish:
+  /v1/offers/gift-cards/{id}/unpublish:
     post:
       tags: [Gift cards]
       operationId: unpublishGiftCardOffer_gift_card
@@ -968,7 +968,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
-  /v1/offers/gift-card/{id}/units:
+  /v1/offers/gift-cards/{id}/units:
     post:
       tags: [Gift cards]
       operationId: restockGiftCardOffer_gift_card
@@ -1017,7 +1017,7 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "429": { $ref: "#/components/responses/RateLimited" }
 
-  /v1/offers/gift-card/{id}/units/{unit_id}:
+  /v1/offers/gift-cards/{id}/units/{unit_id}:
     delete:
       tags: [Gift cards]
       operationId: removeUnitGiftCard_gift_card

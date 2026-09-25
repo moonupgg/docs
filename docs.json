@@ -95,29 +95,29 @@
                   {
                     "group": "Top-ups",
                     "pages": [
-                      "GET /v1/offers/top-up/my",
-                      "GET /v1/offers/top-up/{id}",
-                      "POST /v1/offers/top-up",
-                      "POST /v1/offers/top-up/{id}/units",
-                      "POST /v1/offers/top-up/{id}/publish",
-                      "POST /v1/offers/top-up/{id}/unpublish",
-                      "PATCH /v1/offers/top-up/{id}",
-                      "DELETE /v1/offers/top-up/{id}/units/{unit_id}",
-                      "DELETE /v1/offers/top-up/{id}"
+                      "GET /v1/offers/top-ups/my",
+                      "GET /v1/offers/top-ups/{id}",
+                      "POST /v1/offers/top-ups",
+                      "POST /v1/offers/top-ups/{id}/units",
+                      "POST /v1/offers/top-ups/{id}/publish",
+                      "POST /v1/offers/top-ups/{id}/unpublish",
+                      "PATCH /v1/offers/top-ups/{id}",
+                      "DELETE /v1/offers/top-ups/{id}/units/{unit_id}",
+                      "DELETE /v1/offers/top-ups/{id}"
                     ]
                   },
                   {
                     "group": "Gift cards",
                     "pages": [
-                      "GET /v1/offers/gift-card/my",
-                      "GET /v1/offers/gift-card/{id}",
-                      "POST /v1/offers/gift-card",
-                      "POST /v1/offers/gift-card/{id}/units",
-                      "POST /v1/offers/gift-card/{id}/publish",
-                      "POST /v1/offers/gift-card/{id}/unpublish",
-                      "PATCH /v1/offers/gift-card/{id}",
-                      "DELETE /v1/offers/gift-card/{id}/units/{unit_id}",
-                      "DELETE /v1/offers/gift-card/{id}"
+                      "GET /v1/offers/gift-cards/my",
+                      "GET /v1/offers/gift-cards/{id}",
+                      "POST /v1/offers/gift-cards",
+                      "POST /v1/offers/gift-cards/{id}/units",
+                      "POST /v1/offers/gift-cards/{id}/publish",
+                      "POST /v1/offers/gift-cards/{id}/unpublish",
+                      "PATCH /v1/offers/gift-cards/{id}",
+                      "DELETE /v1/offers/gift-cards/{id}/units/{unit_id}",
+                      "DELETE /v1/offers/gift-cards/{id}"
                     ]
                   },
                   {
@@ -207,29 +207,29 @@
                   {
                     "group": "Top-ups",
                     "pages": [
-                      "GET /v1/offers/top-up/my",
-                      "GET /v1/offers/top-up/{id}",
-                      "POST /v1/offers/top-up",
-                      "POST /v1/offers/top-up/{id}/units",
-                      "POST /v1/offers/top-up/{id}/publish",
-                      "POST /v1/offers/top-up/{id}/unpublish",
-                      "PATCH /v1/offers/top-up/{id}",
-                      "DELETE /v1/offers/top-up/{id}/units/{unit_id}",
-                      "DELETE /v1/offers/top-up/{id}"
+                      "GET /v1/offers/top-ups/my",
+                      "GET /v1/offers/top-ups/{id}",
+                      "POST /v1/offers/top-ups",
+                      "POST /v1/offers/top-ups/{id}/units",
+                      "POST /v1/offers/top-ups/{id}/publish",
+                      "POST /v1/offers/top-ups/{id}/unpublish",
+                      "PATCH /v1/offers/top-ups/{id}",
+                      "DELETE /v1/offers/top-ups/{id}/units/{unit_id}",
+                      "DELETE /v1/offers/top-ups/{id}"
                     ]
                   },
                   {
                     "group": "Gift cards",
                     "pages": [
-                      "GET /v1/offers/gift-card/my",
-                      "GET /v1/offers/gift-card/{id}",
-                      "POST /v1/offers/gift-card",
-                      "POST /v1/offers/gift-card/{id}/units",
-                      "POST /v1/offers/gift-card/{id}/publish",
-                      "POST /v1/offers/gift-card/{id}/unpublish",
-                      "PATCH /v1/offers/gift-card/{id}",
-                      "DELETE /v1/offers/gift-card/{id}/units/{unit_id}",
-                      "DELETE /v1/offers/gift-card/{id}"
+                      "GET /v1/offers/gift-cards/my",
+                      "GET /v1/offers/gift-cards/{id}",
+                      "POST /v1/offers/gift-cards",
+                      "POST /v1/offers/gift-cards/{id}/units",
+                      "POST /v1/offers/gift-cards/{id}/publish",
+                      "POST /v1/offers/gift-cards/{id}/unpublish",
+                      "PATCH /v1/offers/gift-cards/{id}",
+                      "DELETE /v1/offers/gift-cards/{id}/units/{unit_id}",
+                      "DELETE /v1/offers/gift-cards/{id}"
                     ]
                   },
                   {
