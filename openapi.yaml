@@ -68,8 +68,13 @@ info:
     the line: `DELETE` retires a listing for good and keeps it readable to you.
     `sold` follows orders, not calls: the last unit went to a closed order. A
     listing whose stock is all in open orders stays `active`, and a cancelled
-    order puts the stock back. A listing moderation removes for breaking the
-    rules is deleted outright: every call on it answers `404`.
+    order puts the stock back.
+
+    Moderation can send a live listing back as `changes_requested`: it leaves
+    the marketplace, and `moderation_reason_code` with `moderation_note` say
+    what to fix. Your next `PATCH` makes it a `draft`; `publish` it once it is
+    fixed. A listing moderation removes for breaking the rules outright is
+    deleted: every call on it answers `404`.
 
     ## Rate limits
 
@@ -1503,7 +1508,10 @@ components:
             `draft` on create, then `active` once you publish it; unpublish
             takes it back to `draft`. `archived` is yours too, through `DELETE`. `sold`
             follows an order: the last unit went to a closed one.
-          enum: [draft, active, sold, archived]
+            `changes_requested` is moderation sending a live listing back:
+            it is off the marketplace, `moderation_reason_code` says why, and
+            your next `PATCH` makes it a `draft` to publish again.
+          enum: [draft, active, changes_requested, sold, archived]
         created_at: { type: [string, "null"], format: date-time }
         updated_at: { type: [string, "null"], format: date-time }
         published_at:
@@ -1512,6 +1520,15 @@ components:
           description: |
             When `publish` put it on the marketplace. `null` while it is a
             draft, and written once — pausing and unpausing leave it alone.
+        moderation_reason_code:
+          type: [string, "null"]
+          enum: [prohibited_item, misleading_description, stolen_images, invalid_price, insufficient_details, other, null]
+          description: |
+            Why moderation asked for changes. Kept through the `PATCH` that
+            makes the listing a draft, `null` once it is published again.
+        moderation_note:
+          type: [string, "null"]
+          description: What moderation wrote to you along with the reason, if anything.
 
     FiledUnder:
       type: object

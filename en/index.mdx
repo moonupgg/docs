@@ -71,8 +71,13 @@ stays live, a `draft` stays a draft.
 line: `DELETE` retires an offer for good and keeps it readable to you.
 `sold` follows orders, not calls: the last unit went to a closed order. An
 offer whose stock is all in open orders stays `active`, and a cancelled order
-puts the stock back. An offer moderation removes for breaking the rules is
-deleted outright: every call on it answers `404`.
+puts the stock back.
+
+Moderation can send a live offer back as `changes_requested`: it leaves the
+marketplace, and `moderation_reason_code` with `moderation_note` say what to
+fix. Your next `PATCH` makes it a `draft`; `publish` it once it is fixed. An
+offer moderation removes for breaking the rules outright is deleted: every
+call on it answers `404`.
 
 ## Prices
 
