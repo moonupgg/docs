@@ -26,20 +26,36 @@
     },
     "languages": [
       {
-        "language": "ru",
+        "language": "en",
+        "default": true,
         "tabs": [
           {
-            "tab": "Разработчикам",
+            "tab": "Help Center",
+            "groups": [
+              {
+                "group": "Sections",
+                "pages": [
+                  "en/help/buying",
+                  "en/help/currency",
+                  "en/help/boosting",
+                  "en/help/payments",
+                  "en/help/trust-safety"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Developers",
             "openapi": {
               "source": "openapi.yaml",
-              "directory": "ru/api-reference"
+              "directory": "en/api-reference"
             },
             "groups": [
               {
-                "group": "Начало работы",
+                "group": "Get started",
                 "pages": [
-                  "ru/index",
-                  "ru/authentication"
+                  "en/index",
+                  "en/authentication"
                 ]
               },
               {
@@ -120,24 +136,38 @@
               }
             ]
           }
-        ],
-        "default": true
+        ]
       },
       {
-        "language": "en",
+        "language": "ru",
         "tabs": [
           {
-            "tab": "Developers",
+            "tab": "Помощь",
+            "groups": [
+              {
+                "group": "Разделы",
+                "pages": [
+                  "ru/help/buying",
+                  "ru/help/currency",
+                  "ru/help/boosting",
+                  "ru/help/payments",
+                  "ru/help/trust-safety"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Разработчикам",
             "openapi": {
               "source": "openapi.yaml",
-              "directory": "en/api-reference"
+              "directory": "ru/api-reference"
             },
             "groups": [
               {
-                "group": "Get started",
+                "group": "Начало работы",
                 "pages": [
-                  "en/index",
-                  "en/authentication"
+                  "ru/index",
+                  "ru/authentication"
                 ]
               },
               {
