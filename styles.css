@@ -23,3 +23,8 @@ div:has(> #localization-select-trigger) {
   position: absolute;
   right: 0;
 }
+
+/* The navbar is a translucent blur that tints lighter than background.color; pin it to the site's bg-500. */
+#navbar-transition {
+  background-color: #040611 !important;
+}

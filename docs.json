@@ -17,6 +17,12 @@
     "default": "dark",
     "strict": true
   },
+  "background": {
+    "color": {
+      "dark": "#040611",
+      "light": "#040611"
+    }
+  },
   "fonts": {
     "family": "Golos Text"
   },
