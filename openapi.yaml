@@ -66,8 +66,10 @@ info:
 
     `unpublish` takes an `active` listing back to `draft`. `archived` is the end of
     the line: `DELETE` retires a listing for good and keeps it readable to you.
-    `reserved` and `sold` follow orders, not calls. `removed` is a takedown
-    after the fact, which no call in this API performs.
+    `sold` follows orders, not calls: the last unit went to a closed order. A
+    listing whose stock is all in open orders stays `active`, and a cancelled
+    order puts the stock back. `removed` is a takedown after the fact, which
+    no call in this API performs.
 
     ## Rate limits
 
@@ -1499,10 +1501,10 @@ components:
           type: string
           description: |
             `draft` on create, then `active` once you publish it; unpublish
-            takes it back to `draft`. `archived` is yours too, through `DELETE`. `reserved`
-            and `sold` follow an order. `removed` is a takedown after
-            publishing, which no call in this API performs.
-          enum: [draft, active, reserved, sold, removed, archived]
+            takes it back to `draft`. `archived` is yours too, through `DELETE`. `sold`
+            follows an order: the last unit went to a closed one. `removed` is a
+            takedown after publishing, which no call in this API performs.
+          enum: [draft, active, sold, removed, archived]
         created_at: { type: [string, "null"], format: date-time }
         updated_at: { type: [string, "null"], format: date-time }
         published_at:

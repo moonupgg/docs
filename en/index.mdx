@@ -69,8 +69,10 @@ stays live, a `draft` stays a draft.
 
 `unpublish` takes an `active` offer back to `draft`. `archived` is the end of the
 line: `DELETE` retires an offer for good and keeps it readable to you.
-`reserved` and `sold` follow orders, not calls. `removed` is a takedown after
-the fact, which no call in this API performs.
+`sold` follows orders, not calls: the last unit went to a closed order. An
+offer whose stock is all in open orders stays `active`, and a cancelled order
+puts the stock back. `removed` is a takedown after the fact, which no call in
+this API performs.
 
 ## Prices
 
