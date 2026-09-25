@@ -68,8 +68,8 @@ info:
     the line: `DELETE` retires a listing for good and keeps it readable to you.
     `sold` follows orders, not calls: the last unit went to a closed order. A
     listing whose stock is all in open orders stays `active`, and a cancelled
-    order puts the stock back. `removed` is a takedown after the fact, which
-    no call in this API performs.
+    order puts the stock back. A listing moderation removes for breaking the
+    rules is deleted outright: every call on it answers `404`.
 
     ## Rate limits
 
@@ -1502,9 +1502,8 @@ components:
           description: |
             `draft` on create, then `active` once you publish it; unpublish
             takes it back to `draft`. `archived` is yours too, through `DELETE`. `sold`
-            follows an order: the last unit went to a closed one. `removed` is a
-            takedown after publishing, which no call in this API performs.
-          enum: [draft, active, sold, removed, archived]
+            follows an order: the last unit went to a closed one.
+          enum: [draft, active, sold, archived]
         created_at: { type: [string, "null"], format: date-time }
         updated_at: { type: [string, "null"], format: date-time }
         published_at:

@@ -71,8 +71,8 @@ stays live, a `draft` stays a draft.
 line: `DELETE` retires an offer for good and keeps it readable to you.
 `sold` follows orders, not calls: the last unit went to a closed order. An
 offer whose stock is all in open orders stays `active`, and a cancelled order
-puts the stock back. `removed` is a takedown after the fact, which no call in
-this API performs.
+puts the stock back. An offer moderation removes for breaking the rules is
+deleted outright: every call on it answers `404`.
 
 ## Prices
 
