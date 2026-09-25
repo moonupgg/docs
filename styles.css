@@ -17,6 +17,20 @@ html[lang="ru"] #localization-select-trigger::before,
 #localization-select-item-ru::before { background-image: url("/flags/ru.svg"); }
 html[lang="en"] #localization-select-trigger::before,
 #localization-select-item-en::before { background-image: url("/flags/gb.svg"); }
+html[lang="fr"] #localization-select-trigger::before,
+#localization-select-item-fr::before { background-image: url("/flags/fr.svg"); }
+html[lang="de"] #localization-select-trigger::before,
+#localization-select-item-de::before { background-image: url("/flags/de.svg"); }
+html[lang="es"] #localization-select-trigger::before,
+#localization-select-item-es::before { background-image: url("/flags/es.svg"); }
+html[lang="it"] #localization-select-trigger::before,
+#localization-select-item-it::before { background-image: url("/flags/it.svg"); }
+html[lang="tr"] #localization-select-trigger::before,
+#localization-select-item-tr::before { background-image: url("/flags/tr.svg"); }
+html[lang="zh"] #localization-select-trigger::before,
+#localization-select-item-zh::before { background-image: url("/flags/cn.svg"); }
+html[lang="ja"] #localization-select-trigger::before,
+#localization-select-item-ja::before { background-image: url("/flags/jp.svg"); }
 
 /* Switcher lives in the logo block; pin it to the right edge of the header row. */
 div:has(> #localization-select-trigger) {
