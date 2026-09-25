@@ -1,0 +1,63 @@
+---
+title: "Authentification"
+description: "Comment une intégration se connecte à MoonUP et ce à quoi une clé a accès."
+---
+
+Une clé se crée dans le tableau de bord vendeur, sous **Vendeur → Clés API**.
+Elle n’est affichée qu’une fois et agit au nom du compte jusqu’à sa révocation.
+
+## Envoyer la clé
+
+La clé accompagne chaque requête. Il n’y a pas de jeton intermédiaire contre
+lequel l’échanger.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+HTTPS uniquement. Une clé qui a transité en HTTP simple doit être considérée
+comme compromise et remplacée.
+
+## Ce à quoi une clé a accès
+
+Les offres du vendeur : les lister (`GET /v1/offers/my`), les créer, les
+modifier, gérer les unités, les dépublier et les archiver. Tout ce que le
+tableau de bord protège par un second facteur — changer l’e-mail du compte, les
+paramètres 2FA, les retraits — reste hors de portée d’une clé.
+
+## Liste d’adresses autorisées
+
+Facultative. Si votre intégration tourne depuis des adresses fixes, indiquez-les
+à la création de la clé (une adresse ou un sous-réseau, jusqu’à 16 entrées) et
+la clé sera refusée partout ailleurs. Une liste vide signifie toute adresse.
+
+## Limites de débit
+
+| Budget | Limite |
+|---|---|
+| Lectures | 500 requêtes par minute |
+| Écritures | 250 requêtes par minute |
+| Écritures sur une même offre | 5 par minute, 10 par heure |
+
+Un dépassement renvoie `429`. C’est un refus temporaire : attendez et
+réessayez, la clé reste valide.
+
+## Renouveler une clé
+
+Un compte peut détenir jusqu’à 5 clés. Créez la remplaçante avant d’en avoir
+besoin : pointez votre intégration vers la nouvelle clé, vérifiez qu’elle
+fonctionne, puis révoquez l’ancienne. Rien n’a besoin de s’arrêter entre-temps.
+
+## Erreurs
+
+| Code | Signification |
+|---|---|
+| `401 unauthorized` | La clé est inconnue, révoquée, ou la requête provient d’une adresse hors de la liste autorisée. La vérification qui a échoué n’est pas précisée |
+| `403 forbidden` | La clé est valide, mais le compte n’a pas le droit de faire cela : il lui manque l’autorisation, ou il est suspendu (`account_suspended`) |
+| `429 rate_limited` | L’un des budgets ci-dessus a été dépassé |

@@ -1,0 +1,63 @@
+---
+title: "Autenticación"
+description: "Cómo se conecta una integración a MoonUP y a qué llega una clave."
+---
+
+Las claves se crean en el panel de vendedor, en **Vendedor → Claves API**. Se
+muestran una sola vez y actúan en nombre de la cuenta hasta que se revocan.
+
+## Enviar la clave
+
+La clave va en cada solicitud. No hay tokens intermedios por los que
+canjearla.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Solo HTTPS. Una clave que haya viajado por HTTP sin cifrar debe considerarse
+filtrada y sustituirse.
+
+## A qué llega una clave
+
+Las ofertas del propio vendedor: listarlas (`GET /v1/offers/my`), crearlas,
+editarlas, gestionar unidades, despublicarlas y archivarlas. Todo lo que el
+panel protege con un segundo factor — cambiar el correo de la cuenta, los
+ajustes de 2FA, los retiros — queda fuera del alcance de una clave.
+
+## Lista de direcciones permitidas
+
+Opcional. Si tu integración funciona desde direcciones fijas, indícalas al crear
+la clave (una dirección o una subred, hasta 16 entradas) y la clave se rechazará
+desde cualquier otro lugar. Una lista vacía significa cualquier dirección.
+
+## Límites de solicitudes
+
+| Presupuesto | Límite |
+|---|---|
+| Lecturas | 500 solicitudes por minuto |
+| Escrituras | 250 solicitudes por minuto |
+| Escrituras en una oferta | 5 por minuto, 10 por hora |
+
+Superarlos devuelve `429`. Es un rechazo temporal: espera y vuelve a
+intentarlo, la clave sigue siendo válida.
+
+## Rotar una clave
+
+Una cuenta puede tener hasta 5 claves. Crea la sustituta antes de necesitarla:
+apunta tu integración a la nueva clave, comprueba que funciona y revoca la
+antigua. No hace falta que nada deje de funcionar entretanto.
+
+## Errores
+
+| Código | Qué significa |
+|---|---|
+| `401 unauthorized` | La clave es desconocida, está revocada o la solicitud llegó desde una dirección fuera de la lista permitida. No se revela qué comprobación falló |
+| `403 forbidden` | La clave es válida, pero la cuenta no puede hacer esto: le falta el permiso o está suspendida (`account_suspended`) |
+| `429 rate_limited` | Se superó alguno de los presupuestos anteriores |

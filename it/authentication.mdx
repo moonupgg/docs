@@ -1,0 +1,65 @@
+---
+title: "Autenticazione"
+description: "Come un’integrazione si collega a MoonUP e cosa può raggiungere una chiave."
+---
+
+Una chiave si crea nella dashboard venditore in **Venditore → Chiavi API**.
+Viene mostrata una sola volta e agisce per conto dell’account finché non viene
+revocata.
+
+## Inviare la chiave
+
+La chiave accompagna ogni richiesta. Non esistono token intermedi con cui
+scambiarla.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Solo HTTPS. Una chiave transitata su HTTP in chiaro va considerata compromessa
+e sostituita.
+
+## Cosa raggiunge una chiave
+
+Le offerte del venditore: elencarle (`GET /v1/offers/my`), crearle,
+modificarle, gestire le unità, ritirarle e archiviarle. Tutto ciò che la
+dashboard protegge con un secondo fattore — cambiare l’email dell’account, le
+impostazioni 2FA, i prelievi — è fuori dalla portata di una chiave.
+
+## Elenco di indirizzi consentiti
+
+Facoltativo. Se la tua integrazione gira da indirizzi fissi, indicali quando
+crei la chiave (un indirizzo o una sottorete, fino a 16 voci) e la chiave verrà
+rifiutata da qualsiasi altro luogo. Un elenco vuoto significa qualsiasi
+indirizzo.
+
+## Limiti di frequenza
+
+| Budget | Limite |
+|---|---|
+| Letture | 500 richieste al minuto |
+| Scritture | 250 richieste al minuto |
+| Scritture su una singola offerta | 5 al minuto, 10 all’ora |
+
+Superarli restituisce `429`. È un rifiuto temporaneo: attendi e riprova, la
+chiave resta valida.
+
+## Ruotare una chiave
+
+Un account può avere fino a 5 chiavi. Crea la sostituta prima che ti serva:
+punta l’integrazione alla nuova chiave, verifica che funzioni, poi revoca la
+vecchia. Nel frattempo non deve fermarsi nulla.
+
+## Errori
+
+| Codice | Significato |
+|---|---|
+| `401 unauthorized` | La chiave è sconosciuta, revocata, oppure la richiesta proviene da un indirizzo fuori dall’elenco consentito. Quale controllo sia fallito non viene rivelato |
+| `403 forbidden` | La chiave è valida, ma l’account non può farlo: manca il permesso oppure è sospeso (`account_suspended`) |
+| `429 rate_limited` | È stato superato uno dei budget indicati sopra |

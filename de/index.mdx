@@ -1,0 +1,103 @@
+---
+title: "MoonUP Verkäufer-API"
+description: "Veröffentliche und verwalte deine Angebote mit deinen eigenen Tools."
+---
+
+Alles, was die Integration eines Verkäufers braucht, um einen Angebotskatalog
+aktuell zu halten: ein Angebot erstellen, auffüllen, die Veröffentlichung
+aufheben, archivieren.
+
+Jede Kategorie hat eigene Pfade — `/v1/offers/accounts`, `/v1/offers/currency`
+und so weiter — mit eigenen Feldern. Du integrierst die Kategorien, in denen du
+verkaufst, und eine später zur Plattform hinzugefügte Kategorie lässt deine
+unberührt.
+
+Das ist die öffentliche Schnittstelle. Die eigenen Bereiche des
+Verkäufer-Dashboards — Auszahlungen, Streitfälle, Kontoeinstellungen — gehören
+nicht dazu, und ein API-Schlüssel erreicht sie nicht.
+
+Ein *Angebot* ist ein Eintrag auf dem Marktplatz. Die API nennt sie `offers`,
+und alles Folgende ebenso.
+
+## Basis-URL
+
+```
+https://api.moonup.gg
+```
+
+Nur HTTPS, und jeder Pfad ist versioniert: `/v1/...`.
+
+## Deine erste Anfrage
+
+<Steps>
+  <Step title="Schlüssel erstellen">
+    Gehe im Verkäufer-Dashboard zu **Verkäufer → API-Schlüssel** und erstelle
+    einen. Er wird nur einmal angezeigt — kopiere ihn dann, er lässt sich später
+    nicht mehr auslesen.
+  </Step>
+  <Step title="Schlüssel senden">
+    Der Schlüssel gehört in den `Authorization`-Header jeder Anfrage. Er muss
+    gegen nichts eingetauscht werden.
+
+    ```bash
+    curl -H "Authorization: Bearer $MOONUP_API_KEY" \
+      https://api.moonup.gg/v1/offers/accounts/my
+    ```
+  </Step>
+  <Step title="Die Felder der Kategorie lesen">
+    Was der Erstellungsaufruf einer Kategorie erwartet, steht auf ihrer eigenen
+    Referenzseite — ein Account-Angebot hat einen Preis und Bilder, ein
+    Währungsangebot ein Produkt und einen Bestand. Was je nach Spiel variiert,
+    sind die `attributes`, und der Schema-Endpunkt liefert sie: die Felder, ihre
+    Typen und welche Pflicht sind.
+
+    ```bash
+    curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
+    ```
+
+    Dieser Pfad löst den `slug` eines Spiels auf. Die anderen Katalogpfade
+    adressieren ein Spiel über die `id`, die `GET /v1/offers/games` liefert —
+    ein Slug beantwortet dort mit `400`.
+
+    Katalog-Lesezugriffe sind öffentlich — du kannst sie erkunden, bevor du
+    einen Schlüssel hast.
+  </Step>
+</Steps>
+
+## Status
+
+Ein neues Angebot ist ein `draft`: deins, und niemand sonst sieht es. `publish`
+macht es `active`, und ab diesem Moment können Käufer es kaufen — vorher prüft
+es niemand. Ein Angebot ohne verkaufbaren Bestand zu veröffentlichen wird mit
+`409` abgelehnt: füge zuerst Bestand hinzu. Bearbeiten ändert nichts am Status —
+ein `active`-Angebot bleibt live, ein `draft` bleibt ein Entwurf.
+
+`unpublish` setzt ein `active`-Angebot zurück auf `draft`. `archived` ist
+Endstation: `DELETE` nimmt ein Angebot endgültig aus dem Verkauf, lässt es für
+dich aber lesbar. `sold` folgt aus Bestellungen, nicht aus Aufrufen: Die letzte
+Einheit ging an eine abgeschlossene Bestellung. Ein Angebot, dessen gesamter
+Bestand in offenen Bestellungen steckt, bleibt `active`, und eine stornierte
+Bestellung gibt den Bestand zurück.
+
+Die Moderation kann ein Live-Angebot als `changes_requested` zurückschicken:
+Es verlässt den Marktplatz, und `moderation_reason_code` mit
+`moderation_note` sagen, was zu korrigieren ist. Dein nächster `PATCH` macht es
+zu einem `draft`; veröffentliche es mit `publish`, sobald es korrigiert ist.
+Ein Angebot, das die Moderation wegen eines klaren Regelverstoßes entfernt,
+wird gelöscht: Jeder Aufruf dazu antwortet mit `404`.
+
+## Preise
+
+Jeder Preis in dieser API ist eine Ganzzahl in US-Cent. `price: 4990` sind
+49,90 $. Es gibt keine Bruchbeträge, und `USD` ist die einzige Währung.
+
+## Wie es weitergeht
+
+<CardGroup cols={2}>
+  <Card title="Authentifizierung" icon="key" href="/de/authentication">
+    Schlüssel, Adress-Allowlists, Rate Limits und was die Fehler bedeuten.
+  </Card>
+  <Card title="API-Referenz" icon="square-terminal" href="/de/api-reference/catalog/list-games">
+    Jeder Endpunkt, mit einem Playground für echte Anfragen.
+  </Card>
+</CardGroup>

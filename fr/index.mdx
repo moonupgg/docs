@@ -1,0 +1,103 @@
+---
+title: "API vendeur MoonUP"
+description: "Publiez et gérez vos offres depuis vos propres outils."
+---
+
+Tout ce dont l’intégration d’un vendeur a besoin pour tenir son catalogue
+d’offres à jour : créer une offre, la réapprovisionner, la dépublier,
+l’archiver.
+
+Chaque catégorie a ses propres chemins — `/v1/offers/accounts`,
+`/v1/offers/currency`, etc. — avec ses propres champs. Vous intégrez les
+catégories dans lesquelles vous vendez, et une catégorie ajoutée plus tard à la
+plateforme ne touche pas aux vôtres.
+
+C’est la surface publique. Les écrans propres au tableau de bord vendeur —
+retraits, litiges, paramètres du compte — n’en font pas partie, et une clé API
+n’y a pas accès.
+
+Une *offre* est une annonce sur la marketplace. L’API les appelle `offers`, et
+tout ce qui suit aussi.
+
+## URL de base
+
+```
+https://api.moonup.gg
+```
+
+HTTPS uniquement, et chaque chemin est versionné : `/v1/...`.
+
+## Votre première requête
+
+<Steps>
+  <Step title="Créez une clé">
+    Dans le tableau de bord vendeur, allez dans **Vendeur → Clés API** et créez-en
+    une. Elle n’est affichée qu’une fois : copiez-la à ce moment-là, il est
+    impossible de la relire ensuite.
+  </Step>
+  <Step title="Envoyez-la">
+    La clé va dans l’en-tête `Authorization` de chaque requête. Il n’y a rien
+    contre quoi l’échanger.
+
+    ```bash
+    curl -H "Authorization: Bearer $MOONUP_API_KEY" \
+      https://api.moonup.gg/v1/offers/accounts/my
+    ```
+  </Step>
+  <Step title="Lisez les champs propres à la catégorie">
+    Ce que prend l’appel de création d’une catégorie figure sur sa propre page de
+    référence : une offre de compte a un prix et des images, une offre de monnaie
+    a un produit et un stock. Ce qui varie selon le jeu, ce sont les
+    `attributes`, et l’endpoint de schéma les décrit : les champs, leurs types et
+    ceux qui sont obligatoires.
+
+    ```bash
+    curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
+    ```
+
+    Ce chemin accepte le `slug` d’un jeu. Les autres chemins du catalogue
+    désignent un jeu par l’`id` que renvoie `GET /v1/offers/games` : un slug y
+    répond `400`.
+
+    Les lectures du catalogue sont publiques : vous pouvez les explorer avant
+    d’avoir une clé.
+  </Step>
+</Steps>
+
+## Statuts
+
+Une nouvelle offre est un `draft` : elle est à vous et personne d’autre ne la
+voit. `publish` la rend `active`, et les acheteurs peuvent l’acheter dès cet
+instant — rien ne la vérifie avant. Publier une offre qui n’a plus rien à vendre
+est refusé avec `409` : ajoutez d’abord du stock. Modifier une offre ne change
+pas son statut — une offre `active` reste en ligne, un `draft` reste un brouillon.
+
+`unpublish` ramène une offre `active` en `draft`. `archived` est la fin du
+parcours : `DELETE` retire une offre définitivement tout en la laissant lisible
+pour vous. `sold` découle des commandes, pas des appels : la dernière unité est
+partie dans une commande clôturée. Une offre dont tout le stock est dans des
+commandes en cours reste `active`, et une commande annulée remet le stock en place.
+
+La modération peut renvoyer une offre en ligne en `changes_requested` : elle
+quitte la marketplace, et `moderation_reason_code` avec `moderation_note`
+indiquent quoi corriger. Votre prochain `PATCH` en fait un `draft` ; publiez-la
+(`publish`) une fois corrigée. Une offre que la modération retire pour
+violation manifeste des règles est supprimée : chaque appel la concernant
+répond `404`.
+
+## Prix
+
+Chaque prix de cette API est un entier en cents de dollar US. `price: 4990`
+vaut 49,90 $. Il n’y a pas de montants fractionnaires, et `USD` est la seule
+devise.
+
+## Pour aller plus loin
+
+<CardGroup cols={2}>
+  <Card title="Authentification" icon="key" href="/fr/authentication">
+    Clés, listes d’adresses autorisées, limites de débit et signification des erreurs.
+  </Card>
+  <Card title="Référence de l’API" icon="square-terminal" href="/fr/api-reference/catalog/list-games">
+    Chaque endpoint, avec un bac à sable pour envoyer de vraies requêtes.
+  </Card>
+</CardGroup>

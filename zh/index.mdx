@@ -1,0 +1,70 @@
+---
+title: "MoonUP 卖家 API"
+description: "用你自己的工具发布和管理商品。"
+---
+
+卖家集成保持商品目录最新所需的一切：创建商品、补充库存、下架、归档。
+
+每个分类都有自己的路径——`/v1/offers/accounts`、`/v1/offers/currency` 等——并带有各自的字段。你只需对接自己销售的分类，平台以后新增的分类不会影响你已有的分类。
+
+这是公开接口。卖家后台自己的页面——提现、纠纷、账户设置——不在其中，API 密钥也无法访问它们。
+
+*商品*是指平台上的一个在售条目。API 称其为 `offers`，下文也沿用这一叫法。
+
+## 基础 URL
+
+```
+https://api.moonup.gg
+```
+
+仅支持 HTTPS，且所有路径都带版本号：`/v1/...`。
+
+## 你的第一个请求
+
+<Steps>
+  <Step title="创建密钥">
+    在卖家后台进入 **卖家 → API 密钥** 并创建一个。密钥只显示一次——请在当时复制，之后无法再读取。
+  </Step>
+  <Step title="发送密钥">
+    每个请求都在 `Authorization` 请求头中携带密钥，无需兑换任何其他凭证。
+
+    ```bash
+    curl -H "Authorization: Bearer $MOONUP_API_KEY" \
+      https://api.moonup.gg/v1/offers/accounts/my
+    ```
+  </Step>
+  <Step title="读取分类自己的字段">
+    某个分类的创建接口接受哪些参数，见该分类自己的参考页面——账号商品有价格和图片，游戏币商品有商品项和库存。随游戏变化的是 `attributes`，由 schema 接口返回：字段、类型以及哪些为必填。
+
+    ```bash
+    curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
+    ```
+
+    该路径使用游戏的 `slug`。其他目录路径使用 `GET /v1/offers/games` 返回的 `id` 来标识游戏——在那里使用 slug 会返回 `400`。
+
+    目录读取是公开的——在拿到密钥之前就可以探索。
+  </Step>
+</Steps>
+
+## 状态
+
+新商品是 `draft`：只属于你，其他人看不到。`publish` 将其变为 `active`，买家从这一刻起即可购买——此前不会有人审核。发布一个没有可售库存的商品会被拒绝并返回 `409`：请先添加库存。编辑不会改变商品的状态——`active` 的商品保持在售，`draft` 仍是草稿。
+
+`unpublish` 将 `active` 商品退回 `draft`。`archived` 是终点：`DELETE` 会永久下线商品，但你仍可读取它。`sold` 由订单决定，而不是由接口调用决定：最后一个单元进入了已关闭的订单。库存全部处于未完成订单中的商品仍为 `active`，订单取消后库存会退回。
+
+审核可以将在售商品退回为 `changes_requested`：商品会离开平台，`moderation_reason_code` 和 `moderation_note` 会说明需要修改的内容。你下一次 `PATCH` 会使其变为 `draft`；修改好后再 `publish`。因明显违规被审核移除的商品会被删除：对其的任何调用都返回 `404`。
+
+## 价格
+
+本 API 中的所有价格均为以美分计的整数。`price: 4990` 即 49.90 美元。没有小数金额，`USD` 是唯一的货币。
+
+## 下一步
+
+<CardGroup cols={2}>
+  <Card title="身份验证" icon="key" href="/zh/authentication">
+    密钥、地址白名单、速率限制以及错误的含义。
+  </Card>
+  <Card title="API 参考" icon="square-terminal" href="/zh/api-reference/catalog/list-games">
+    所有接口，并附带可发送真实请求的调试台。
+  </Card>
+</CardGroup>

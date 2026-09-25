@@ -1,0 +1,66 @@
+---
+title: "Authentifizierung"
+description: "Wie sich eine Integration mit MoonUP verbindet und was ein Schlüssel erreicht."
+---
+
+Ein Schlüssel wird im Verkäufer-Dashboard unter **Verkäufer → API-Schlüssel**
+erstellt. Er wird nur einmal angezeigt und handelt im Namen des Kontos, bis er
+widerrufen wird.
+
+## Den Schlüssel senden
+
+Der Schlüssel wird bei jeder Anfrage mitgeschickt. Es gibt keine
+Zwischentokens, gegen die er eingetauscht wird.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Nur HTTPS. Ein Schlüssel, der über unverschlüsseltes HTTP übertragen wurde,
+gilt als kompromittiert und sollte ersetzt werden.
+
+## Was ein Schlüssel erreicht
+
+Die eigenen Angebote des Verkäufers: auflisten (`GET /v1/offers/my`),
+erstellen, bearbeiten, Einheiten verwalten, Veröffentlichung aufheben und
+archivieren. Alles, was das Dashboard mit einem zweiten Faktor schützt —
+Änderung der Konto-E-Mail, 2FA-Einstellungen, Auszahlungen — ist für einen
+Schlüssel unerreichbar.
+
+## Adress-Allowlist
+
+Optional. Läuft deine Integration von festen Adressen, gib sie beim Erstellen
+des Schlüssels an (eine Adresse oder ein Subnetz, bis zu 16 Einträge), und der
+Schlüssel wird von überall sonst abgelehnt. Eine leere Liste bedeutet jede
+Adresse.
+
+## Rate Limits
+
+| Budget | Limit |
+|---|---|
+| Lesezugriffe | 500 Anfragen pro Minute |
+| Schreibzugriffe | 250 Anfragen pro Minute |
+| Schreibzugriffe auf ein Angebot | 5 pro Minute, 10 pro Stunde |
+
+Eine Überschreitung liefert `429`. Das ist eine vorübergehende Ablehnung:
+warten und erneut versuchen, der Schlüssel bleibt gültig.
+
+## Schlüssel rotieren
+
+Ein Konto kann bis zu 5 Schlüssel haben. Erstelle den Ersatz, bevor du ihn
+brauchst: Stelle deine Integration auf den neuen Schlüssel um, prüfe, dass er
+funktioniert, und widerrufe dann den alten. Dazwischen muss nichts ausfallen.
+
+## Fehler
+
+| Code | Bedeutung |
+|---|---|
+| `401 unauthorized` | Der Schlüssel ist unbekannt, widerrufen, oder die Anfrage kam von einer Adresse außerhalb der Allowlist. Welche Prüfung fehlschlug, wird nicht offengelegt |
+| `403 forbidden` | Der Schlüssel ist gültig, aber das Konto darf das nicht — ihm fehlt die Berechtigung oder es ist gesperrt (`account_suspended`) |
+| `429 rate_limited` | Eines der obigen Budgets wurde überschritten |

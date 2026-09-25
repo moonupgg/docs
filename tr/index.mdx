@@ -1,0 +1,98 @@
+---
+title: "MoonUP Satıcı API’si"
+description: "İlanlarını kendi araçlarınla yayınla ve yönet."
+---
+
+Bir satıcı entegrasyonunun ilan kataloğunu güncel tutmak için ihtiyaç duyduğu
+her şey: ilan oluşturmak, stok eklemek, yayından kaldırmak, arşivlemek.
+
+Her kategorinin kendi yolları vardır — `/v1/offers/accounts`,
+`/v1/offers/currency` vb. — ve kendi alanlarını taşır. Yalnızca satış yaptığın
+kategorilerle entegre olursun; platforma sonradan eklenen bir kategori
+seninkileri etkilemez.
+
+Bu, herkese açık arayüzdür. Satıcı panelinin kendi ekranları — para çekme,
+anlaşmazlıklar, hesap ayarları — buna dahil değildir ve bir API anahtarı bunlara
+erişemez.
+
+Bir *ilan*, pazar yerindeki tek bir listelemedir. API bunlara `offers` der,
+aşağıdaki her şey de öyle.
+
+## Temel URL
+
+```
+https://api.moonup.gg
+```
+
+Yalnızca HTTPS; her yol sürümlüdür: `/v1/...`.
+
+## İlk isteğin
+
+<Steps>
+  <Step title="Bir anahtar oluştur">
+    Satıcı panelinde **Satıcı → API anahtarları** bölümüne git ve bir anahtar
+    oluştur. Yalnızca bir kez gösterilir — o anda kopyala, sonradan tekrar
+    okumanın yolu yok.
+  </Step>
+  <Step title="Anahtarı gönder">
+    Anahtar her isteğin `Authorization` başlığına eklenir. Başka bir şeyle
+    takas edilmesi gerekmez.
+
+    ```bash
+    curl -H "Authorization: Bearer $MOONUP_API_KEY" \
+      https://api.moonup.gg/v1/offers/accounts/my
+    ```
+  </Step>
+  <Step title="Kategorinin alanlarını oku">
+    Bir kategorinin oluşturma çağrısının ne aldığı, o kategorinin kendi referans
+    sayfasındadır — hesap ilanının fiyatı ve görselleri, oyun parası ilanının
+    ürünü ve stoğu vardır. Oyuna göre değişen kısım `attributes` alanıdır; şema
+    endpoint’i bunları döndürür: alanlar, türleri ve hangilerinin zorunlu olduğu.
+
+    ```bash
+    curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
+    ```
+
+    Bu yol bir oyunun `slug` değerini çözer. Diğer katalog yolları oyunu
+    `GET /v1/offers/games` tarafından döndürülen `id` ile belirtir — orada slug
+    kullanmak `400` döndürür.
+
+    Katalog okumaları herkese açıktır — anahtarın olmadan da keşfedebilirsin.
+  </Step>
+</Steps>
+
+## Durumlar
+
+Yeni bir ilan `draft` durumundadır: senindir ve başkası göremez. `publish` onu
+`active` yapar ve alıcılar o andan itibaren satın alabilir — önceden kimse
+incelemez. Satacak bir şeyi kalmamış bir ilanı yayınlamak `409` ile reddedilir:
+önce stok ekle. Düzenlemek ilanın durumunu değiştirmez — `active` bir ilan
+yayında kalır, `draft` taslak olarak kalır.
+
+`unpublish`, `active` bir ilanı `draft` durumuna geri alır. `archived` yolun
+sonudur: `DELETE` bir ilanı kalıcı olarak kaldırır ve senin için okunabilir
+bırakır. `sold` çağrılardan değil siparişlerden gelir: son birim kapanmış bir
+siparişe gitmiştir. Tüm stoğu açık siparişlerde olan bir ilan `active` kalır;
+iptal edilen bir sipariş stoğu geri koyar.
+
+Moderasyon yayındaki bir ilanı `changes_requested` olarak geri gönderebilir:
+ilan pazar yerinden çıkar; `moderation_reason_code` ve `moderation_note` neyin
+düzeltileceğini söyler. Bir sonraki `PATCH` isteğin onu `draft` yapar;
+düzelttikten sonra `publish` ile yayınla. Moderasyonun kuralları açıkça ihlal
+ettiği için kaldırdığı ilan silinir: onunla ilgili her çağrı `404` döndürür.
+
+## Fiyatlar
+
+Bu API’deki her fiyat, ABD senti cinsinden bir tam sayıdır. `price: 4990`,
+49,90 $ demektir. Kesirli tutar yoktur ve tek para birimi `USD`’dir.
+
+## Sonraki adımlar
+
+<CardGroup cols={2}>
+  <Card title="Kimlik doğrulama" icon="key" href="/tr/authentication">
+    Anahtarlar, adres izin listeleri, istek sınırları ve hataların anlamı.
+  </Card>
+  <Card title="API referansı" icon="square-terminal" href="/tr/api-reference/catalog/list-games">
+    Her endpoint, gerçek istek gönderebileceğin bir test alanıyla birlikte.
+  </Card>
+</CardGroup>

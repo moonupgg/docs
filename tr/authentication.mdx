@@ -1,0 +1,62 @@
+---
+title: "Kimlik doğrulama"
+description: "Bir entegrasyonun MoonUP’a nasıl bağlandığı ve bir anahtarın nelere erişebildiği."
+---
+
+Anahtar, satıcı panelinde **Satıcı → API anahtarları** bölümünde oluşturulur.
+Yalnızca bir kez gösterilir ve iptal edilene kadar hesap adına işlem yapar.
+
+## Anahtarı göndermek
+
+Anahtar her istekle gönderilir. Takas edilecek ara token yoktur.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Yalnızca HTTPS. Şifresiz HTTP üzerinden gönderilmiş bir anahtar sızmış kabul
+edilmeli ve yenilenmelidir.
+
+## Bir anahtar nelere erişir
+
+Satıcının kendi ilanları: listelemek (`GET /v1/offers/my`), oluşturmak,
+düzenlemek, birimleri yönetmek, yayından kaldırmak ve arşivlemek. Panelin ikinci
+faktörle koruduğu her şey — hesap e-postasını değiştirmek, 2FA ayarları, para
+çekme — bir anahtarın erişiminin dışındadır.
+
+## Adres izin listesi
+
+İsteğe bağlı. Entegrasyonun sabit adreslerden çalışıyorsa, anahtarı oluştururken
+bunları belirt (bir adres veya alt ağ, en fazla 16 kayıt); anahtar başka her
+yerden reddedilir. Boş liste, herhangi bir adres anlamına gelir.
+
+## İstek sınırları
+
+| Bütçe | Sınır |
+|---|---|
+| Okumalar | Dakikada 500 istek |
+| Yazmalar | Dakikada 250 istek |
+| Tek bir ilana yazmalar | Dakikada 5, saatte 10 |
+
+Sınırı aşmak `429` döndürür. Bu geçici bir reddir: bekle ve tekrar dene,
+anahtar geçerli kalır.
+
+## Anahtarı yenilemek
+
+Bir hesapta en fazla 5 anahtar olabilir. Yenisine ihtiyaç duymadan önce oluştur:
+entegrasyonunu yeni anahtara yönlendir, çalıştığını doğrula, sonra eskisini iptal
+et. Arada hiçbir şeyin durması gerekmez.
+
+## Hatalar
+
+| Kod | Anlamı |
+|---|---|
+| `401 unauthorized` | Anahtar bilinmiyor, iptal edilmiş ya da istek izin listesi dışındaki bir adresten gelmiş. Hangi kontrolün başarısız olduğu açıklanmaz |
+| `403 forbidden` | Anahtar geçerli, ancak hesabın bunu yapma yetkisi yok — izni eksik ya da askıya alınmış (`account_suspended`) |
+| `429 rate_limited` | Yukarıdaki bütçelerden biri aşıldı |
