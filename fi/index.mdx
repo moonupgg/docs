@@ -1,0 +1,97 @@
+---
+title: "MoonUP Seller API"
+description: "Julkaise ja hallitse tarjouksiasi omilla työkaluillasi."
+---
+
+Kaikki, mitä myyjän integraatio tarvitsee pitääkseen tarjousvalikoiman ajan
+tasalla: luo tarjous, täydennä sen varastoa, poista sen julkaisu, arkistoi se.
+
+Jokaisella kategorialla on omat polkunsa — `/v1/offers/accounts`,
+`/v1/offers/currency` ja niin edelleen — ja omat kenttänsä. Integroit ne
+kategoriat, joissa myyt, eikä alustalle myöhemmin lisättävä kategoria muuta
+omiasi.
+
+Tämä on julkinen rajapinta. Myyjän hallintapaneelin omat näkymät — nostot,
+riidat, tilin asetukset — eivät kuulu siihen, eikä API-avain ulotu niihin.
+
+*Tarjous* on yksi ilmoitus kauppapaikalla. API kutsuu niitä nimellä `offers`,
+ja niin tekee myös kaikki alla oleva.
+
+## Perus-URL
+
+```
+https://api.moonup.gg
+```
+
+Vain HTTPS, ja jokainen polku on versioitu: `/v1/...`.
+
+## Ensimmäinen pyyntösi
+
+<Steps>
+  <Step title="Luo avain">
+    Mene myyjän hallintapaneelissa kohtaan **Myyjä → API-avaimet** ja luo avain.
+    Se näytetään vain kerran — kopioi se silloin, sitä ei voi lukea uudelleen.
+  </Step>
+  <Step title="Lähetä se">
+    Avain kulkee jokaisen pyynnön `Authorization`-otsakkeessa. Sitä ei vaihdeta
+    mihinkään muuhun.
+
+    ```bash
+    curl -H "Authorization: Bearer $MOONUP_API_KEY" \
+      https://api.moonup.gg/v1/offers/accounts/my
+    ```
+  </Step>
+  <Step title="Lue kategorian omat kentät">
+    Mitä kategorian luontikutsu ottaa vastaan, löytyy sen omalta
+    referenssisivulta — tilitarjouksella on hinta ja kuvat, valuuttatarjouksella
+    tuote ja varasto. Pelikohtaisesti vaihtelevat `attributes`, ja
+    skeema-endpoint vastaa niillä: kentät, niiden tyypit ja pakolliset kentät.
+
+    ```bash
+    curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
+    ```
+
+    Tämä polku tunnistaa pelin sen `slug`-arvosta. Muut katalogipolut
+    osoittavat peliin `id`:llä, jonka `GET /v1/offers/games` palauttaa — slug
+    niissä vastaa `400`.
+
+    Katalogin luku on julkista — voit tutustua siihen jo ennen kuin sinulla on
+    avain.
+  </Step>
+</Steps>
+
+## Tilat
+
+Uusi tarjous on `draft`: sinun, eikä kenenkään muun nähtävissä. `publish`
+tekee siitä `active`-tilaisen, ja ostajat voivat ostaa sen siitä hetkestä —
+kukaan ei tarkista sitä ensin. Tarjouksen julkaisu, kun myytävää ei ole
+jäljellä, hylätään koodilla `409`: lisää ensin varastoa. Muokkaus ei muuta
+tarjouksen tilaa — `active` pysyy julkaistuna, `draft` pysyy luonnoksena.
+
+`unpublish` palauttaa `active`-tarjouksen tilaan `draft`. `archived` on tien
+pää: `DELETE` poistaa tarjouksen käytöstä lopullisesti ja pitää sen sinulle
+luettavana. `sold` seuraa tilauksia, ei kutsuja: viimeinen yksikkö päätyi
+suljettuun tilaukseen. Tarjous, jonka koko varasto on avoimissa tilauksissa,
+pysyy `active`-tilassa, ja peruttu tilaus palauttaa varaston.
+
+Moderointi voi palauttaa julkaistun tarjouksen tilaan `changes_requested`: se
+poistuu kauppapaikalta, ja `moderation_reason_code` sekä `moderation_note`
+kertovat, mitä korjata. Seuraava `PATCH` tekee siitä `draft`-tilaisen; tee
+`publish`, kun se on korjattu. Tarjous, jonka moderointi poistaa suoran
+sääntörikkomuksen vuoksi, poistetaan: jokainen kutsu siihen vastaa `404`.
+
+## Hinnat
+
+Jokainen hinta tässä API:ssa on kokonaisluku Yhdysvaltain sentteinä.
+`price: 4990` on 49,90 $. Murto-osia ei ole, ja `USD` on ainoa valuutta.
+
+## Mitä seuraavaksi
+
+<CardGroup cols={2}>
+  <Card title="Tunnistautuminen" icon="key" href="/fi/authentication">
+    Avaimet, osoitteiden sallittujen luettelot, käyttörajat ja mitä virheet tarkoittavat.
+  </Card>
+  <Card title="API-referenssi" icon="square-terminal" href="/fi/api-reference/catalog/list-games">
+    Kaikki endpointit sekä playground, josta voit lähettää oikeita pyyntöjä.
+  </Card>
+</CardGroup>

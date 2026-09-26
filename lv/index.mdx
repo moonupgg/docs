@@ -1,0 +1,95 @@
+---
+title: "MoonUP Seller API"
+description: "Publicē un pārvaldi savus piedāvājumus no saviem rīkiem."
+---
+
+Viss, kas pārdevēja integrācijai vajadzīgs, lai piedāvājumu katalogs būtu
+aktuāls: izveido piedāvājumu, papildini tā krājumu, atceļ publicēšanu, arhivē.
+
+Katrai kategorijai ir savi ceļi — `/v1/offers/accounts`, `/v1/offers/currency`
+un tā tālāk — ar saviem laukiem. Tu integrē tās kategorijas, kurās pārdod, un
+kategorija, kas platformai tiks pievienota vēlāk, tavējās neietekmē.
+
+Šī ir publiskā saskarne. Pārdevēja paneļa ekrāni — izmaksas, strīdi, konta
+iestatījumi — tajā neietilpst, un API atslēga tiem nepiekļūst.
+
+*Piedāvājums* ir viens sludinājums tirgū. API tos sauc par `offers`, un tāpat
+arī viss turpmākais.
+
+## Bāzes URL
+
+```
+https://api.moonup.gg
+```
+
+Tikai HTTPS, un katrs ceļš ir versionēts: `/v1/...`.
+
+## Tavs pirmais pieprasījums
+
+<Steps>
+  <Step title="Izveido atslēgu">
+    Pārdevēja panelī atver **Pārdevējs → API atslēgas** un izveido atslēgu. Tā
+    tiek parādīta vienreiz — nokopē to uzreiz, vēlāk to nolasīt nevar.
+  </Step>
+  <Step title="Nosūti to">
+    Atslēga tiek sūtīta katra pieprasījuma `Authorization` galvenē. To nav
+    nepieciešams ne pret ko apmainīt.
+
+    ```bash
+    curl -H "Authorization: Bearer $MOONUP_API_KEY" \
+      https://api.moonup.gg/v1/offers/accounts/my
+    ```
+  </Step>
+  <Step title="Izlasi kategorijas laukus">
+    Ko pieņem kategorijas izveides pieprasījums, ir aprakstīts tās atsauces
+    lapā — kontu piedāvājumam ir cena un attēli, valūtas piedāvājumam — produkts
+    un krājums. Atkarībā no spēles mainās `attributes`, un shēmas endpoint
+    atgriež tieši tos: laukus, to tipus un obligātos laukus.
+
+    ```bash
+    curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
+    ```
+
+    Šis ceļš atpazīst spēli pēc tās `slug`. Pārējie kataloga ceļi norāda spēli
+    ar `id`, ko atgriež `GET /v1/offers/games` — slug tur atbild ar `400`.
+
+    Kataloga lasīšana ir publiska — to vari izpētīt vēl pirms atslēgas
+    saņemšanas.
+  </Step>
+</Steps>
+
+## Statusi
+
+Jauns piedāvājums ir `draft`: tavs, un neviens cits to neredz. `publish` padara
+to par `active`, un pircēji to var pirkt no tā brīža — neviens to iepriekš
+nepārbauda. Piedāvājuma publicēšana, ja nav vairs ko pārdot, tiek noraidīta ar
+`409`: vispirms pievieno krājumu. Rediģēšana nemaina piedāvājuma statusu —
+`active` paliek publicēts, `draft` paliek melnraksts.
+
+`unpublish` atgriež `active` piedāvājumu statusā `draft`. `archived` ir ceļa
+gals: `DELETE` neatgriezeniski izņem piedāvājumu no aprites un atstāj to tev
+lasāmu. `sold` seko pasūtījumiem, nevis pieprasījumiem: pēdējā vienība nonāca
+slēgtā pasūtījumā. Piedāvājums, kura viss krājums ir atvērtos pasūtījumos,
+paliek `active`, un atcelts pasūtījums krājumu atgriež.
+
+Moderācija var atgriezt publicētu piedāvājumu statusā `changes_requested`: tas
+pazūd no tirgus, un `moderation_reason_code` kopā ar `moderation_note` norāda,
+ko labot. Nākamais `PATCH` padara to par `draft`; veic `publish`, kad tas ir
+izlabots. Piedāvājums, ko moderācija noņem par klaju noteikumu pārkāpumu, tiek
+dzēsts: katrs pieprasījums uz to atbild ar `404`.
+
+## Cenas
+
+Katra cena šajā API ir vesels skaitlis ASV centos. `price: 4990` ir $49,90.
+Daļskaitļu nav, un `USD` ir vienīgā valūta.
+
+## Kur doties tālāk
+
+<CardGroup cols={2}>
+  <Card title="Autentifikācija" icon="key" href="/lv/authentication">
+    Atslēgas, atļauto adrešu saraksti, pieprasījumu limiti un kļūdu nozīme.
+  </Card>
+  <Card title="API atsauce" icon="square-terminal" href="/lv/api-reference/catalog/list-games">
+    Visi endpoint, ar playground, no kura var sūtīt reālus pieprasījumus.
+  </Card>
+</CardGroup>

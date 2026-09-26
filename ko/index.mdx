@@ -1,0 +1,96 @@
+---
+title: "MoonUP Seller API"
+description: "직접 만든 도구로 판매글을 등록하고 관리하세요."
+---
+
+판매자 연동에 필요한 모든 것으로 판매글 목록을 최신 상태로 유지하세요:
+판매글 생성, 재고 보충, 게시 중단, 보관.
+
+각 카테고리에는 고유한 경로가 있으며 — `/v1/offers/accounts`,
+`/v1/offers/currency` 등 — 각자의 필드를 가집니다. 판매하는 카테고리만
+연동하면 되고, 나중에 플랫폼에 추가되는 카테고리는 기존 연동에 영향을 주지
+않습니다.
+
+이것은 공개 인터페이스입니다. 판매자 대시보드 자체의 화면 — 출금, 분쟁, 계정
+설정 — 은 여기에 포함되지 않으며, API 키로 접근할 수 없습니다.
+
+*판매글*은 마켓플레이스의 등록 상품 하나입니다. API에서는 `offers`라고
+부르며, 아래 내용도 모두 같습니다.
+
+## 기본 URL
+
+```
+https://api.moonup.gg
+```
+
+HTTPS만 지원하며, 모든 경로에 버전이 붙습니다: `/v1/...`.
+
+## 첫 번째 요청
+
+<Steps>
+  <Step title="키 만들기">
+    판매자 대시보드에서 **판매자 → API 키**로 이동해 키를 만드세요. 키는 한
+    번만 표시되므로 그때 복사하세요. 다시 확인할 방법이 없습니다.
+  </Step>
+  <Step title="키 보내기">
+    키는 모든 요청의 `Authorization` 헤더에 넣습니다. 다른 것으로 교환할
+    필요는 없습니다.
+
+    ```bash
+    curl -H "Authorization: Bearer $MOONUP_API_KEY" \
+      https://api.moonup.gg/v1/offers/accounts/my
+    ```
+  </Step>
+  <Step title="카테고리별 필드 확인">
+    카테고리의 생성 요청이 받는 값은 해당 레퍼런스 페이지에 있습니다 — 계정
+    판매글에는 가격과 이미지가, 게임 머니 판매글에는 상품과 재고가 있습니다.
+    게임마다 달라지는 것은 `attributes`이며, 스키마 엔드포인트가 이를
+    알려 줍니다: 필드, 타입, 필수 여부.
+
+    ```bash
+    curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
+    ```
+
+    이 경로는 게임의 `slug`로 게임을 찾습니다. 다른 카탈로그 경로는
+    `GET /v1/offers/games`가 반환하는 `id`로 게임을 지정하며, 거기에 slug를
+    넣으면 `400`이 반환됩니다.
+
+    카탈로그 조회는 공개되어 있어 키가 없어도 살펴볼 수 있습니다.
+  </Step>
+</Steps>
+
+## 상태
+
+새 판매글은 `draft`입니다: 본인만 볼 수 있습니다. `publish`하면 `active`가
+되고, 그 순간부터 구매자가 구매할 수 있습니다 — 사전 검토는 없습니다. 판매할
+재고가 없는 판매글을 게시하면 `409`로 거부됩니다: 먼저 재고를 추가하세요.
+수정해도 판매글의 상태는 바뀌지 않습니다 — `active`는 계속 게시되고,
+`draft`는 계속 임시저장 상태입니다.
+
+`unpublish`는 `active` 판매글을 `draft`로 되돌립니다. `archived`는 마지막
+단계입니다: `DELETE`는 판매글을 영구히 종료하고 본인은 계속 조회할 수 있게
+둡니다. `sold`는 요청이 아니라 주문에 따라 결정됩니다: 마지막 재고가 종료된
+주문으로 나간 경우입니다. 모든 재고가 진행 중인 주문에 있는 판매글은
+`active`로 남고, 주문이 취소되면 재고가 돌아옵니다.
+
+운영팀은 게시된 판매글을 `changes_requested`로 되돌릴 수 있습니다: 판매글이
+마켓플레이스에서 내려가며, `moderation_reason_code`와 `moderation_note`가
+수정할 내용을 알려 줍니다. 다음 `PATCH`로 `draft`가 되며, 수정이 끝나면
+`publish`하세요. 명백한 규정 위반으로 운영팀이 삭제한 판매글은 완전히
+삭제되어 모든 요청이 `404`를 반환합니다.
+
+## 가격
+
+이 API의 모든 가격은 미국 센트 단위의 정수입니다. `price: 4990`은
+$49.90입니다. 소수 금액은 없으며, 통화는 `USD`뿐입니다.
+
+## 다음 단계
+
+<CardGroup cols={2}>
+  <Card title="인증" icon="key" href="/ko/authentication">
+    키, 주소 허용 목록, 요청 한도, 오류의 의미.
+  </Card>
+  <Card title="API 레퍼런스" icon="square-terminal" href="/ko/api-reference/catalog/list-games">
+    모든 엔드포인트와 실제 요청을 보낼 수 있는 플레이그라운드.
+  </Card>
+</CardGroup>

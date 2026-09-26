@@ -1,0 +1,63 @@
+---
+title: "Autentisering"
+description: "Hvordan en integrasjon kobler seg til MoonUP, og hva en nøkkel når."
+---
+
+En nøkkel lages i selgerpanelet under **Selger → API-nøkler**. Den vises én
+gang, og den handler på vegne av kontoen til den blir tilbakekalt.
+
+## Sende nøkkelen
+
+Nøkkelen sendes med hver forespørsel. Det finnes ingen mellomliggende tokener
+å bytte den inn mot.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Bare HTTPS. En nøkkel som har gått over vanlig HTTP, skal regnes som lekket og
+byttes ut.
+
+## Hva en nøkkel når
+
+Selgerens egne tilbud: liste dem (`GET /v1/offers/my`), opprette, redigere,
+administrere enheter, avpublisere og arkivere. Alt panelet beskytter med en
+andre faktor — endring av kontoens e-post, 2FA-innstillinger, uttak — er
+utenfor rekkevidde for en nøkkel.
+
+## Adresseliste
+
+Valgfritt. Hvis integrasjonen din kjører fra faste adresser, oppgir du dem når
+du lager nøkkelen (en adresse eller et subnett, opptil 16 oppføringer), og
+nøkkelen avvises fra alle andre steder. En tom liste betyr alle adresser.
+
+## Hastighetsgrenser
+
+| Budsjett | Grense |
+|---|---|
+| Lesing | 500 forespørsler per minutt |
+| Skriving | 250 forespørsler per minutt |
+| Skriving til ett tilbud | 5 per minutt, 10 per time |
+
+Overskridelse gir `429`. Det er en midlertidig avvisning: vent og prøv igjen,
+nøkkelen forblir gyldig.
+
+## Bytte nøkkel
+
+En konto kan ha opptil 5 nøkler. Lag erstatningen før du trenger den: pek
+integrasjonen mot den nye nøkkelen, bekreft at den fungerer, og tilbakekall så
+den gamle. Ingenting trenger å gå ned i mellomtiden.
+
+## Feil
+
+| Kode | Hva den betyr |
+|---|---|
+| `401 unauthorized` | Nøkkelen er ukjent, tilbakekalt, eller forespørselen kom fra en adresse utenfor adresselisten. Hvilken kontroll som feilet, oppgis ikke |
+| `403 forbidden` | Nøkkelen er gyldig, men kontoen har ikke lov til dette — den mangler tillatelsen, eller den er suspendert (`account_suspended`) |
+| `429 rate_limited` | Et av budsjettene ovenfor ble overskredet |

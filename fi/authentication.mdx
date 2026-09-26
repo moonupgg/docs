@@ -1,0 +1,63 @@
+---
+title: "Tunnistautuminen"
+description: "Miten integraatio yhdistyy MoonUP:iin ja mihin avain ulottuu."
+---
+
+Avain luodaan myyjän hallintapaneelissa kohdassa **Myyjä → API-avaimet**. Se
+näytetään kerran, ja se toimii tilin puolesta, kunnes se mitätöidään.
+
+## Avaimen lähettäminen
+
+Avain kulkee jokaisessa pyynnössä. Välitokeneita, joihin se vaihdettaisiin,
+ei ole.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Vain HTTPS. Pelkän HTTP:n yli kulkenutta avainta on pidettävä vuotaneena, ja
+se on vaihdettava.
+
+## Mihin avain ulottuu
+
+Myyjän omiin tarjouksiin: niiden listaus (`GET /v1/offers/my`), luonti,
+muokkaus, yksiköiden hallinta, julkaisun poisto ja arkistointi. Mikään, minkä
+hallintapaneeli suojaa toisella tekijällä — tilin sähköpostin vaihto, 2FA:n
+asetukset, nostot — ei ole avaimen ulottuvilla.
+
+## Sallitut osoitteet
+
+Valinnainen. Jos integraatiosi toimii kiinteistä osoitteista, luettele ne
+avainta luodessa (osoite tai aliverkko, enintään 16 kohtaa), niin avain
+hylätään kaikkialta muualta. Tyhjä luettelo tarkoittaa mitä tahansa osoitetta.
+
+## Käyttörajat
+
+| Budjetti | Raja |
+|---|---|
+| Luku | 500 pyyntöä minuutissa |
+| Kirjoitus | 250 pyyntöä minuutissa |
+| Kirjoitukset yhteen tarjoukseen | 5 minuutissa, 10 tunnissa |
+
+Rajan ylitys palauttaa `429`. Se on tilapäinen hylkäys: odota ja yritä
+uudelleen, avain pysyy voimassa.
+
+## Avaimen vaihtaminen
+
+Tilillä voi olla enintään 5 avainta. Luo korvaava avain ennen kuin tarvitset
+sitä: ohjaa integraatio uuteen avaimeen, varmista että se toimii, ja mitätöi
+sitten vanha. Mitään ei tarvitse ajaa alas välissä.
+
+## Virheet
+
+| Koodi | Merkitys |
+|---|---|
+| `401 unauthorized` | Avain on tuntematon, mitätöity, tai pyyntö tuli sallittujen luettelon ulkopuolisesta osoitteesta. Sitä, mikä tarkistus epäonnistui, ei kerrota |
+| `403 forbidden` | Avain on kelvollinen, mutta tili ei saa tehdä tätä — siltä puuttuu oikeus tai se on jäädytetty (`account_suspended`) |
+| `429 rate_limited` | Jokin yllä olevista budjeteista ylittyi |

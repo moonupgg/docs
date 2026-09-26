@@ -1,0 +1,63 @@
+---
+title: "Autentifikācija"
+description: "Kā integrācija pieslēdzas MoonUP un kam atslēga var piekļūt."
+---
+
+Atslēgu izveido pārdevēja panelī sadaļā **Pārdevējs → API atslēgas**. Tā tiek
+parādīta vienreiz un darbojas konta vārdā, līdz tiek atsaukta.
+
+## Atslēgas sūtīšana
+
+Atslēga tiek sūtīta katrā pieprasījumā. Starpposma tokenu, pret kuriem to
+apmainīt, nav.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Tikai HTTPS. Atslēga, kas nosūtīta pa nešifrētu HTTP, jāuzskata par nopludinātu
+un jānomaina.
+
+## Kam atslēga piekļūst
+
+Pārdevēja paša piedāvājumiem: to saraksts (`GET /v1/offers/my`), izveide,
+rediģēšana, vienību pārvaldība, publicēšanas atcelšana un arhivēšana. Nekas,
+ko panelis aizsargā ar otru faktoru — konta e-pasta maiņa, 2FA iestatījumi,
+izmaksas —, atslēgai nav pieejams.
+
+## Atļautās adreses
+
+Neobligāti. Ja tava integrācija darbojas no fiksētām adresēm, norādi tās,
+veidojot atslēgu (adrese vai apakštīkls, līdz 16 ierakstiem), un no citurienes
+atslēga tiks noraidīta. Tukšs saraksts nozīmē jebkuru adresi.
+
+## Pieprasījumu limiti
+
+| Budžets | Limits |
+|---|---|
+| Lasīšana | 500 pieprasījumi minūtē |
+| Rakstīšana | 250 pieprasījumi minūtē |
+| Rakstīšana vienā piedāvājumā | 5 minūtē, 10 stundā |
+
+Pārsniegšana atgriež `429`. Tas ir īslaicīgs atteikums: pagaidi un mēģini
+vēlreiz, atslēga paliek derīga.
+
+## Atslēgas nomaiņa
+
+Kontam var būt līdz 5 atslēgām. Izveido aizstājēju, pirms tas vajadzīgs:
+pārslēdz integrāciju uz jauno atslēgu, pārliecinies, ka tā darbojas, un tad
+atsauc veco. Pa vidu nekas nav jāaptur.
+
+## Kļūdas
+
+| Kods | Nozīme |
+|---|---|
+| `401 unauthorized` | Atslēga nav zināma, ir atsaukta, vai pieprasījums nāca no adreses ārpus atļautā saraksta. Kura pārbaude neizdevās, netiek atklāts |
+| `403 forbidden` | Atslēga ir derīga, bet kontam to darīt nav atļauts — tam trūkst tiesību vai tas ir apturēts (`account_suspended`) |
+| `429 rate_limited` | Pārsniegts kāds no iepriekš minētajiem budžetiem |

@@ -1,0 +1,98 @@
+---
+title: "MoonUP Seller API"
+description: "Publiser og administrer tilbudene dine fra dine egne verktøy."
+---
+
+Alt en selgerintegrasjon trenger for å holde en katalog med tilbud oppdatert:
+opprett et tilbud, fyll på lageret, avpubliser det, arkiver det.
+
+Hver kategori har sine egne stier — `/v1/offers/accounts`,
+`/v1/offers/currency` og så videre — med sine egne felt. Du integrerer med
+kategoriene du selger i, og en kategori som legges til plattformen senere,
+påvirker ikke dine.
+
+Dette er den offentlige flaten. Selgerpanelets egne skjermer — utbetalinger,
+tvister, kontoinnstillinger — er ikke en del av den, og en API-nøkkel når dem
+ikke.
+
+Et *tilbud* er én annonse på markedsplassen. API-et kaller dem `offers`, og det
+gjør også alt nedenfor.
+
+## Base-URL
+
+```
+https://api.moonup.gg
+```
+
+Bare HTTPS, og hver sti er versjonert: `/v1/...`.
+
+## Din første forespørsel
+
+<Steps>
+  <Step title="Lag en nøkkel">
+    I selgerpanelet går du til **Selger → API-nøkler** og lager en. Den vises
+    én gang — kopier den da, det finnes ingen måte å lese den på igjen.
+  </Step>
+  <Step title="Send den">
+    Nøkkelen legges i `Authorization`-headeren i hver forespørsel. Den skal
+    ikke byttes inn mot noe annet.
+
+    ```bash
+    curl -H "Authorization: Bearer $MOONUP_API_KEY" \
+      https://api.moonup.gg/v1/offers/accounts/my
+    ```
+  </Step>
+  <Step title="Les kategoriens egne felt">
+    Hva en kategoris opprettingskall tar imot, står på dens egen
+    referanseside — et kontotilbud har pris og bilder, et valutatilbud har et
+    produkt og et lager. Det som varierer per spill, er `attributes`, og
+    skjema-endepunktet svarer med dem: feltene, typene deres og hvilke som er
+    påkrevd.
+
+    ```bash
+    curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
+    ```
+
+    Denne stien slår opp et spill etter `slug`. De andre katalogstiene
+    adresserer et spill med `id`-en som `GET /v1/offers/games` returnerer — en
+    slug der svarer `400`.
+
+    Katalogoppslag er offentlige — du kan utforske dem før du har en nøkkel.
+  </Step>
+</Steps>
+
+## Statuser
+
+Et nytt tilbud er `draft`: ditt, og ingen andre kan se det. `publish` gjør det
+`active`, og kjøpere kan kjøpe det fra det øyeblikket — ingen vurderer det
+først. Publisering av et tilbud uten noe igjen å selge avvises med `409`: fyll
+på lageret først. Redigering endrer ikke hvor et tilbud står — et `active`
+tilbud forblir publisert, et `draft` forblir et utkast.
+
+`unpublish` tar et `active` tilbud tilbake til `draft`. `archived` er
+endestasjonen: `DELETE` pensjonerer et tilbud for godt og holder det lesbart
+for deg. `sold` følger bestillinger, ikke kall: den siste enheten gikk til en
+avsluttet bestilling. Et tilbud der hele lageret ligger i åpne bestillinger,
+forblir `active`, og en kansellert bestilling legger lageret tilbake.
+
+Moderatorene kan sende et publisert tilbud tilbake som `changes_requested`: det
+forsvinner fra markedsplassen, og `moderation_reason_code` sammen med
+`moderation_note` forteller hva som må rettes. Neste `PATCH` gjør det til
+`draft`; kjør `publish` når det er rettet. Et tilbud som moderatorene fjerner
+for åpenbare regelbrudd, slettes: hvert kall mot det svarer `404`.
+
+## Priser
+
+Alle priser i dette API-et er heltall i amerikanske cent. `price: 4990` er
+$49,90. Det finnes ingen brøkbeløp, og `USD` er den eneste valutaen.
+
+## Hvor du går videre
+
+<CardGroup cols={2}>
+  <Card title="Autentisering" icon="key" href="/no/authentication">
+    Nøkler, adresselister, hastighetsgrenser og hva feilene betyr.
+  </Card>
+  <Card title="API-referanse" icon="square-terminal" href="/no/api-reference/catalog/list-games">
+    Alle endepunkter, med en playground du kan sende ekte forespørsler fra.
+  </Card>
+</CardGroup>
