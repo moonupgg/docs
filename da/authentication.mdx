@@ -1,0 +1,63 @@
+---
+title: "Godkendelse"
+description: "Hvordan en integration forbinder til MoonUP, og hvad en nøgle kan nå."
+---
+
+En nøgle oprettes i sælgerpanelet under **Sælger → API-nøgler**. Den vises
+én gang og handler på vegne af kontoen, indtil den tilbagekaldes.
+
+## Afsendelse af nøglen
+
+Nøglen skal med i hver forespørgsel. Der er ingen mellemliggende tokens at
+bytte den til.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Kun HTTPS. En nøgle, der er sendt over almindelig HTTP, skal betragtes som
+lækket og udskiftes.
+
+## Hvad en nøgle kan nå
+
+Sælgerens egne tilbud: vis dem (`GET /v1/offers/my`), opret, redigér,
+administrer enheder, afpublicer og arkivér. Alt, hvad panelet beskytter med en
+anden faktor — ændring af kontoens e-mail, 2FA-indstillinger, udbetalinger —
+er uden for en nøgles rækkevidde.
+
+## Adresseliste
+
+Valgfri. Hvis din integration kører fra faste adresser, så angiv dem, når du
+opretter nøglen (en adresse eller et subnet, op til 16 poster), og nøglen
+afvises alle andre steder fra. En tom liste betyder enhver adresse.
+
+## Hastighedsgrænser
+
+| Budget | Grænse |
+|---|---|
+| Læsninger | 500 forespørgsler pr. minut |
+| Skrivninger | 250 forespørgsler pr. minut |
+| Skrivninger til ét tilbud | 5 pr. minut, 10 pr. time |
+
+Overskridelse giver `429`. Det er en midlertidig afvisning: vent og prøv igen,
+nøglen er stadig gyldig.
+
+## Udskiftning af en nøgle
+
+En konto kan have op til 5 nøgler. Opret afløseren, før du får brug for den:
+peg din integration på den nye nøgle, bekræft at den virker, og tilbagekald så
+den gamle. Intet behøver at gå ned undervejs.
+
+## Fejl
+
+| Kode | Hvad den betyder |
+|---|---|
+| `401 unauthorized` | Nøglen er ukendt eller tilbagekaldt, eller forespørgslen kom fra en adresse uden for listen. Hvilket tjek der fejlede, oplyses ikke |
+| `403 forbidden` | Nøglen er gyldig, men kontoen må ikke gøre dette — den mangler tilladelsen, eller den er suspenderet (`account_suspended`) |
+| `429 rate_limited` | Et af budgetterne ovenfor blev overskredet |

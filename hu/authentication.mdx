@@ -1,0 +1,63 @@
+---
+title: "Hitelesítés"
+description: "Hogyan csatlakozik egy integráció a MoonUP-hoz, és mit ér el egy kulcs."
+---
+
+A kulcsot az eladói irányítópulton, az **Eladó → API-kulcsok** alatt lehet
+létrehozni. Egyszer jelenik meg, és visszavonásáig a fiók nevében jár el.
+
+## A kulcs elküldése
+
+A kulcs minden kéréshez hozzátartozik. Nincsenek köztes tokenek, amelyekre be
+kellene váltani.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Csak HTTPS. Egy sima HTTP-n elküldött kulcsot kiszivárgottnak kell tekinteni,
+és le kell cserélni.
+
+## Mit ér el egy kulcs
+
+Az eladó saját ajánlatait: listázás (`GET /v1/offers/my`), létrehozás,
+szerkesztés, egységek kezelése, közzététel visszavonása és archiválás. Amit az
+irányítópult második faktorral véd — a fiók e-mail-címének módosítása, a 2FA
+beállításai, a pénzfelvétel —, azt egy kulcs nem éri el.
+
+## Címlista
+
+Nem kötelező. Ha az integrációd fix címekről fut, add meg őket a kulcs
+létrehozásakor (egy cím vagy alhálózat, legfeljebb 16 bejegyzés), és a kulcsot
+minden más helyről elutasítjuk. Az üres lista bármely címet jelent.
+
+## Korlátozások
+
+| Keret | Korlát |
+|---|---|
+| Olvasás | percenként 500 kérés |
+| Írás | percenként 250 kérés |
+| Írás egy ajánlatra | percenként 5, óránként 10 |
+
+A túllépés `429`-et ad. Ez átmeneti elutasítás: várj, és próbáld újra, a kulcs
+érvényes marad.
+
+## Kulcs cseréje
+
+Egy fióknak legfeljebb 5 kulcsa lehet. Hozd létre a cserekulcsot, mielőtt
+szükség lenne rá: állítsd át az integrációt az új kulcsra, ellenőrizd, hogy
+működik, majd vond vissza a régit. Közben semminek nem kell leállnia.
+
+## Hibák
+
+| Kód | Jelentése |
+|---|---|
+| `401 unauthorized` | A kulcs ismeretlen vagy visszavont, vagy a kérés a listán kívüli címről érkezett. Hogy melyik ellenőrzés bukott el, azt nem áruljuk el |
+| `403 forbidden` | A kulcs érvényes, de a fiók ezt nem teheti meg — nincs rá jogosultsága, vagy fel van függesztve (`account_suspended`) |
+| `429 rate_limited` | Túllépted a fenti keretek egyikét |

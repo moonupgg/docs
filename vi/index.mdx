@@ -1,0 +1,98 @@
+---
+title: "MoonUP Seller API"
+description: "Tạo và quản lý ưu đãi từ công cụ của riêng bạn."
+---
+
+Mọi thứ mà tích hợp của người bán cần để giữ danh mục ưu đãi luôn cập nhật:
+tạo ưu đãi, bổ sung tồn kho, gỡ đăng, lưu trữ.
+
+Mỗi danh mục có các đường dẫn riêng — `/v1/offers/accounts`,
+`/v1/offers/currency`, v.v. — với các trường riêng. Bạn tích hợp với những
+danh mục mình đang bán, và danh mục được thêm vào nền tảng sau này sẽ không
+ảnh hưởng đến danh mục của bạn.
+
+Đây là giao diện công khai. Các màn hình riêng của bảng điều khiển người bán —
+rút tiền, tranh chấp, cài đặt tài khoản — không nằm trong đó, và khóa API
+không truy cập được chúng.
+
+Một *ưu đãi* là một tin đăng trên sàn. API gọi chúng là `offers`, và mọi phần
+dưới đây cũng vậy.
+
+## URL gốc
+
+```
+https://api.moonup.gg
+```
+
+Chỉ HTTPS, và mọi đường dẫn đều có phiên bản: `/v1/...`.
+
+## Yêu cầu đầu tiên của bạn
+
+<Steps>
+  <Step title="Tạo khóa">
+    Trong bảng điều khiển người bán, vào **Người bán → Khóa API** và tạo một
+    khóa. Khóa chỉ hiển thị một lần — hãy sao chép ngay, không thể đọc lại.
+  </Step>
+  <Step title="Gửi khóa">
+    Khóa được đặt trong header `Authorization` của mọi yêu cầu. Không cần đổi
+    lấy thứ gì khác.
+
+    ```bash
+    curl -H "Authorization: Bearer $MOONUP_API_KEY" \
+      https://api.moonup.gg/v1/offers/accounts/my
+    ```
+  </Step>
+  <Step title="Đọc các trường của danh mục">
+    Lệnh tạo của mỗi danh mục nhận những gì được mô tả trên trang tham chiếu
+    riêng của nó — ưu đãi tài khoản có giá và hình ảnh, ưu đãi tiền tệ có sản
+    phẩm và tồn kho. Phần khác nhau giữa các trò chơi là `attributes`, và
+    endpoint schema trả về chúng: các trường, kiểu dữ liệu và trường nào bắt
+    buộc.
+
+    ```bash
+    curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
+    ```
+
+    Đường dẫn này nhận diện trò chơi qua `slug`. Các đường dẫn danh mục khác
+    chỉ định trò chơi bằng `id` mà `GET /v1/offers/games` trả về — dùng slug
+    ở đó sẽ nhận `400`.
+
+    Việc đọc danh mục là công khai — bạn có thể khám phá trước khi có khóa.
+  </Step>
+</Steps>
+
+## Trạng thái
+
+Ưu đãi mới là `draft`: của bạn, và không ai khác thấy được. `publish` chuyển
+nó sang `active`, và người mua có thể mua ngay từ lúc đó — không có bước duyệt
+trước. Đăng một ưu đãi không còn gì để bán sẽ bị từ chối với `409`: hãy bổ
+sung tồn kho trước. Chỉnh sửa không thay đổi trạng thái của ưu đãi — ưu đãi
+`active` vẫn đang bán, `draft` vẫn là bản nháp.
+
+`unpublish` đưa ưu đãi `active` về `draft`. `archived` là điểm cuối: `DELETE`
+gỡ ưu đãi vĩnh viễn và vẫn để bạn xem được. `sold` theo đơn hàng, không theo
+lệnh gọi: đơn vị cuối cùng đã thuộc về một đơn đã đóng. Ưu đãi có toàn bộ tồn
+kho nằm trong các đơn đang mở vẫn là `active`, và đơn bị hủy sẽ trả tồn kho
+về.
+
+Kiểm duyệt có thể trả một ưu đãi đang bán về trạng thái `changes_requested`:
+ưu đãi rời khỏi sàn, và `moderation_reason_code` cùng `moderation_note` cho
+biết cần sửa gì. Lệnh `PATCH` tiếp theo sẽ biến nó thành `draft`; hãy
+`publish` khi đã sửa xong. Ưu đãi bị kiểm duyệt gỡ vì vi phạm quy định rõ
+ràng sẽ bị xóa: mọi lệnh gọi đến nó đều trả `404`.
+
+## Giá
+
+Mọi mức giá trong API này là số nguyên tính bằng cent Mỹ. `price: 4990` là
+$49,90. Không có số lẻ, và `USD` là loại tiền duy nhất.
+
+## Tiếp theo
+
+<CardGroup cols={2}>
+  <Card title="Xác thực" icon="key" href="/vi/authentication">
+    Khóa, danh sách địa chỉ, giới hạn tần suất và ý nghĩa của các lỗi.
+  </Card>
+  <Card title="Tham chiếu API" icon="square-terminal" href="/vi/api-reference/catalog/list-games">
+    Mọi endpoint, kèm playground để gửi yêu cầu thật.
+  </Card>
+</CardGroup>

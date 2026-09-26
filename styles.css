@@ -37,6 +37,18 @@ html[lang="nl"] #localization-select-trigger::before,
 #localization-select-item-nl::before { background-image: url("/flags/nl.svg"); }
 html[lang="pl"] #localization-select-trigger::before,
 #localization-select-item-pl::before { background-image: url("/flags/pl.svg"); }
+html[lang="da"] #localization-select-trigger::before,
+#localization-select-item-da::before { background-image: url("/flags/dk.svg"); }
+html[lang="vi"] #localization-select-trigger::before,
+#localization-select-item-vi::before { background-image: url("/flags/vn.svg"); }
+html[lang="id"] #localization-select-trigger::before,
+#localization-select-item-id::before { background-image: url("/flags/id.svg"); }
+html[lang="hu"] #localization-select-trigger::before,
+#localization-select-item-hu::before { background-image: url("/flags/hu.svg"); }
+html[lang="ro"] #localization-select-trigger::before,
+#localization-select-item-ro::before { background-image: url("/flags/ro.svg"); }
+html[lang="sv"] #localization-select-trigger::before,
+#localization-select-item-sv::before { background-image: url("/flags/se.svg"); }
 
 /* Switcher lives in the logo block; pin it to the right edge of the header row. */
 div:has(> #localization-select-trigger) {

@@ -1,0 +1,63 @@
+---
+title: "Autentificare"
+description: "Cum se conectează o integrare la MoonUP și la ce are acces o cheie."
+---
+
+O cheie se creează în panoul de vânzător, la **Vânzător → Chei API**. Este
+afișată o singură dată și acționează în numele contului până când este revocată.
+
+## Trimiterea cheii
+
+Cheia însoțește fiecare cerere. Nu există tokenuri intermediare pe care să o
+schimbi.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Doar HTTPS. O cheie care a circulat prin HTTP simplu trebuie considerată
+compromisă și înlocuită.
+
+## La ce are acces o cheie
+
+Ofertele proprii ale vânzătorului: listarea lor (`GET /v1/offers/my`), crearea,
+editarea, gestionarea unităților, retragerea și arhivarea. Tot ce panoul
+protejează cu un al doilea factor — schimbarea e-mailului contului, setările
+2FA, retragerile de bani — este în afara accesului unei chei.
+
+## Listă de adrese permise
+
+Opțională. Dacă integrarea rulează de pe adrese fixe, enumeră-le la crearea
+cheii (o adresă sau o subrețea, până la 16 intrări), iar cheia va fi refuzată
+de oriunde altundeva. O listă goală înseamnă orice adresă.
+
+## Limite de rată
+
+| Buget | Limită |
+|---|---|
+| Citiri | 500 de cereri pe minut |
+| Scrieri | 250 de cereri pe minut |
+| Scrieri pe o ofertă | 5 pe minut, 10 pe oră |
+
+Depășirea returnează `429`. Este un refuz temporar: așteaptă și reîncearcă,
+cheia rămâne validă.
+
+## Înlocuirea unei chei
+
+Un cont poate avea până la 5 chei. Creează înlocuitoarea înainte să ai nevoie
+de ea: îndreaptă integrarea spre cheia nouă, verifică dacă funcționează, apoi
+revocă-o pe cea veche. Nimic nu trebuie să se oprească între timp.
+
+## Erori
+
+| Cod | Ce înseamnă |
+|---|---|
+| `401 unauthorized` | Cheia este necunoscută sau revocată, ori cererea a venit de la o adresă din afara listei. Nu se dezvăluie ce verificare a eșuat |
+| `403 forbidden` | Cheia este validă, dar contul nu are voie să facă asta — nu are permisiunea sau este suspendat (`account_suspended`) |
+| `429 rate_limited` | Unul dintre bugetele de mai sus a fost depășit |

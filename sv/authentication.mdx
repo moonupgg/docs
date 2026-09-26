@@ -1,0 +1,63 @@
+---
+title: "Autentisering"
+description: "Hur en integration ansluter till MoonUP och vad en nyckel når."
+---
+
+En nyckel skapas i säljarpanelen under **Säljare → API-nycklar**. Den visas en
+gång och agerar för kontot tills den återkallas.
+
+## Skicka nyckeln
+
+Nyckeln skickas med varje förfrågan. Det finns inga mellanliggande tokens att
+byta den mot.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Endast HTTPS. En nyckel som har skickats över vanlig HTTP ska betraktas som
+läckt och bytas ut.
+
+## Vad en nyckel når
+
+Säljarens egna erbjudanden: lista dem (`GET /v1/offers/my`), skapa, redigera,
+hantera enheter, avpublicera och arkivera. Allt som panelen skyddar med en
+andra faktor — byte av kontots e-post, 2FA-inställningar, uttag — ligger
+utanför en nyckels räckvidd.
+
+## Adresslista
+
+Valfritt. Om din integration körs från fasta adresser, ange dem när du skapar
+nyckeln (en adress eller ett subnät, upp till 16 poster), så nekas nyckeln från
+alla andra adresser. En tom lista betyder vilken adress som helst.
+
+## Hastighetsgränser
+
+| Budget | Gräns |
+|---|---|
+| Läsningar | 500 förfrågningar per minut |
+| Skrivningar | 250 förfrågningar per minut |
+| Skrivningar till ett erbjudande | 5 per minut, 10 per timme |
+
+Överskridande ger `429`. Det är ett tillfälligt nej: vänta och försök igen,
+nyckeln är fortfarande giltig.
+
+## Byta nyckel
+
+Ett konto kan ha upp till 5 nycklar. Skapa ersättaren innan du behöver den:
+peka integrationen mot den nya nyckeln, bekräfta att den fungerar och återkalla
+sedan den gamla. Inget behöver gå ner under tiden.
+
+## Fel
+
+| Kod | Vad den betyder |
+|---|---|
+| `401 unauthorized` | Nyckeln är okänd eller återkallad, eller förfrågan kom från en adress utanför listan. Vilken kontroll som misslyckades avslöjas inte |
+| `403 forbidden` | Nyckeln är giltig, men kontot får inte göra detta — det saknar behörighet eller är avstängt (`account_suspended`) |
+| `429 rate_limited` | En av budgetarna ovan överskreds |

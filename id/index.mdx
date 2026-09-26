@@ -1,0 +1,102 @@
+---
+title: "MoonUP Seller API"
+description: "Buat dan kelola penawaranmu dari alatmu sendiri."
+---
+
+Semua yang dibutuhkan integrasi penjual untuk menjaga katalog penawarannya
+tetap mutakhir: membuat penawaran, menambah stok, membatalkan publikasi,
+mengarsipkan.
+
+Setiap kategori punya jalurnya sendiri — `/v1/offers/accounts`,
+`/v1/offers/currency`, dan seterusnya — dengan kolomnya sendiri. Kamu
+berintegrasi dengan kategori tempat kamu berjualan, dan kategori yang
+ditambahkan ke platform kemudian tidak memengaruhi milikmu.
+
+Ini adalah antarmuka publik. Layar dasbor penjual sendiri — pencairan,
+sengketa, pengaturan akun — bukan bagian darinya, dan kunci API tidak dapat
+menjangkaunya.
+
+*Penawaran* adalah satu listing di marketplace. API menyebutnya `offers`,
+begitu pula semua yang ada di bawah.
+
+## URL dasar
+
+```
+https://api.moonup.gg
+```
+
+Hanya HTTPS, dan setiap jalur memiliki versi: `/v1/...`.
+
+## Permintaan pertamamu
+
+<Steps>
+  <Step title="Buat kunci">
+    Di dasbor penjual, buka **Penjual → Kunci API** dan buat satu. Kunci
+    hanya ditampilkan sekali — salin saat itu juga, kunci tidak bisa dibaca
+    lagi.
+  </Step>
+  <Step title="Kirimkan">
+    Kunci dimasukkan ke header `Authorization` di setiap permintaan. Tidak
+    perlu ditukar dengan apa pun.
+
+    ```bash
+    curl -H "Authorization: Bearer $MOONUP_API_KEY" \
+      https://api.moonup.gg/v1/offers/accounts/my
+    ```
+  </Step>
+  <Step title="Baca kolom milik kategori">
+    Apa yang diterima panggilan pembuatan sebuah kategori ada di halaman
+    referensinya sendiri — penawaran akun punya harga dan gambar, penawaran
+    mata uang punya produk dan stok. Yang berbeda antar game adalah
+    `attributes`, dan endpoint schema menjawabnya: kolom, tipenya, dan mana
+    yang wajib.
+
+    ```bash
+    curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
+    ```
+
+    Jalur ini mengenali game melalui `slug`-nya. Jalur katalog lainnya
+    merujuk game dengan `id` yang dikembalikan `GET /v1/offers/games` — slug
+    di sana menghasilkan `400`.
+
+    Pembacaan katalog bersifat publik — kamu bisa menjelajahinya sebelum punya kunci.
+  </Step>
+</Steps>
+
+## Status
+
+Penawaran baru berstatus `draft`: milikmu, dan tidak terlihat oleh orang lain.
+`publish` menjadikannya `active`, dan pembeli bisa membelinya sejak saat itu —
+tidak ada yang meninjaunya lebih dulu. Memublikasikan penawaran tanpa stok
+yang bisa dijual ditolak dengan `409`: tambahkan stok dulu. Mengedit tidak
+mengubah status penawaran — yang `active` tetap tayang, `draft` tetap draf.
+
+`unpublish` mengembalikan penawaran `active` ke `draft`. `archived` adalah
+akhir perjalanan: `DELETE` menarik penawaran untuk selamanya dan tetap bisa
+kamu baca. `sold` mengikuti pesanan, bukan panggilan: unit terakhir masuk ke
+pesanan yang sudah ditutup. Penawaran yang seluruh stoknya berada di pesanan
+terbuka tetap `active`, dan pesanan yang dibatalkan mengembalikan stoknya.
+
+Moderasi dapat mengembalikan penawaran yang tayang sebagai
+`changes_requested`: penawaran keluar dari marketplace, dan
+`moderation_reason_code` bersama `moderation_note` menjelaskan apa yang harus
+diperbaiki. `PATCH` berikutnya menjadikannya `draft`; lakukan `publish`
+setelah diperbaiki. Penawaran yang dihapus moderasi karena jelas melanggar
+aturan akan dihapus: setiap panggilan ke penawaran itu menjawab `404`.
+
+## Harga
+
+Setiap harga di API ini adalah bilangan bulat dalam sen dolar AS.
+`price: 4990` berarti $49,90. Tidak ada jumlah pecahan, dan `USD` adalah
+satu-satunya mata uang.
+
+## Langkah selanjutnya
+
+<CardGroup cols={2}>
+  <Card title="Autentikasi" icon="key" href="/id/authentication">
+    Kunci, daftar alamat, batas laju, dan arti setiap error.
+  </Card>
+  <Card title="Referensi API" icon="square-terminal" href="/id/api-reference/catalog/list-games">
+    Semua endpoint, dengan playground untuk mengirim permintaan nyata.
+  </Card>
+</CardGroup>

@@ -1,0 +1,100 @@
+---
+title: "MoonUP Seller API"
+description: "Hozd létre és kezeld az ajánlataidat a saját eszközeidből."
+---
+
+Minden, ami egy eladói integrációnak kell ahhoz, hogy naprakészen tartsa az
+ajánlatkatalógusát: ajánlat létrehozása, készlet feltöltése, közzététel
+visszavonása, archiválás.
+
+Minden kategóriának saját útvonalai vannak — `/v1/offers/accounts`,
+`/v1/offers/currency` és így tovább — saját mezőkkel. Azokkal a kategóriákkal
+integrálsz, amelyekben értékesítesz, és egy később a platformra kerülő
+kategória nem érinti a tiédet.
+
+Ez a nyilvános felület. Az eladói irányítópult saját képernyői — kifizetések,
+viták, fiókbeállítások — nem részei, és egy API-kulcs nem éri el őket.
+
+Az *ajánlat* egy hirdetés a piactéren. Az API `offers`-nek hívja őket, és az
+alábbiakban is így szerepelnek.
+
+## Alap URL
+
+```
+https://api.moonup.gg
+```
+
+Csak HTTPS, és minden útvonal verziózott: `/v1/...`.
+
+## Az első kérésed
+
+<Steps>
+  <Step title="Hozz létre egy kulcsot">
+    Az eladói irányítópulton menj az **Eladó → API-kulcsok** oldalra, és hozz
+    létre egyet. Csak egyszer jelenik meg — ekkor másold ki, később nem lehet
+    visszaolvasni.
+  </Step>
+  <Step title="Küldd el">
+    A kulcs minden kérés `Authorization` fejlécébe kerül. Semmire nem kell
+    beváltani.
+
+    ```bash
+    curl -H "Authorization: Bearer $MOONUP_API_KEY" \
+      https://api.moonup.gg/v1/offers/accounts/my
+    ```
+  </Step>
+  <Step title="Nézd meg a kategória saját mezőit">
+    Hogy egy kategória létrehozó hívása mit fogad, az a saját referencia-
+    oldalán szerepel — egy fiókajánlatnak ára és képei vannak, egy
+    valutaajánlatnak terméke és készlete. Ami játékonként eltér, az az
+    `attributes`, és a schema végpont ezekkel válaszol: a mezőkkel, a
+    típusaikkal, és hogy melyik kötelező.
+
+    ```bash
+    curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
+    ```
+
+    Ez az útvonal a játék `slug`-ját oldja fel. A többi katalógusútvonal azzal
+    az `id`-vel hivatkozik a játékra, amelyet a `GET /v1/offers/games` ad
+    vissza — ott egy slug `400`-at eredményez.
+
+    A katalógus olvasása nyilvános — kulcs nélkül is felfedezheted.
+  </Step>
+</Steps>
+
+## Állapotok
+
+Az új ajánlat `draft`: a tiéd, és senki más nem látja. A `publish` `active`
+állapotba teszi, és attól a pillanattól a vevők megvehetik — előtte semmi nem
+ellenőrzi. Olyan ajánlat közzétételét, amelyből nincs mit eladni, `409`-cel
+elutasítjuk: előbb töltsd fel a készletet. A szerkesztés nem változtat az
+ajánlat állapotán — egy `active` élő marad, egy `draft` piszkozat marad.
+
+Az `unpublish` egy `active` ajánlatot visszavisz `draft` állapotba. Az
+`archived` a végállomás: a `DELETE` véglegesen visszavonja az ajánlatot, de
+számodra olvasható marad. A `sold` a rendeléseket követi, nem a hívásokat: az
+utolsó egység egy lezárt rendeléshez került. Az az ajánlat, amelynek teljes
+készlete nyitott rendelésekben van, `active` marad, és egy törölt rendelés
+visszateszi a készletet.
+
+A moderáció egy élő ajánlatot `changes_requested` állapotba küldhet vissza:
+lekerül a piactérről, és a `moderation_reason_code` a `moderation_note`-tal
+együtt megmondja, mit kell javítani. A következő `PATCH` `draft`-tá teszi;
+javítás után `publish`. Az az ajánlat, amelyet a moderáció nyílt
+szabályszegés miatt eltávolít, törlődik: minden hívás `404`-et ad rá.
+
+## Árak
+
+Az API-ban minden ár egész szám, amerikai centben. A `price: 4990` 49,90 $.
+Nincsenek törtösszegek, és az `USD` az egyetlen pénznem.
+
+## Merre tovább
+
+<CardGroup cols={2}>
+  <Card title="Hitelesítés" icon="key" href="/hu/authentication">
+    Kulcsok, címlisták, korlátozások és a hibák jelentése.
+  </Card>
+  <Card title="API-referencia" icon="square-terminal" href="/hu/api-reference/catalog/list-games">
+    Minden végpont, egy playgrounddal, ahonnan valódi kéréseket küldhetsz.
+  </Card>
+</CardGroup>

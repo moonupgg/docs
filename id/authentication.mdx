@@ -1,0 +1,62 @@
+---
+title: "Autentikasi"
+description: "Cara integrasi terhubung ke MoonUP, dan apa yang bisa dijangkau kunci."
+---
+
+Kunci dibuat di dasbor penjual pada **Penjual → Kunci API**. Kunci hanya
+ditampilkan sekali dan bertindak atas nama akun sampai dicabut.
+
+## Mengirim kunci
+
+Kunci dikirim di setiap permintaan. Tidak ada token perantara untuk ditukar.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Hanya HTTPS. Kunci yang pernah dikirim lewat HTTP biasa harus dianggap bocor
+dan diganti.
+
+## Apa yang bisa dijangkau kunci
+
+Penawaran milik penjual sendiri: menampilkannya (`GET /v1/offers/my`),
+membuat, mengedit, mengelola unit, membatalkan publikasi, dan mengarsipkan.
+Semua yang dilindungi dasbor dengan faktor kedua — mengganti email akun,
+pengaturan 2FA, penarikan — berada di luar jangkauan kunci.
+
+## Daftar alamat
+
+Opsional. Jika integrasimu berjalan dari alamat tetap, cantumkan alamat itu
+saat membuat kunci (alamat atau subnet, hingga 16 entri), dan kunci akan
+ditolak dari tempat lain. Daftar kosong berarti alamat mana pun.
+
+## Batas laju
+
+| Kuota | Batas |
+|---|---|
+| Baca | 500 permintaan per menit |
+| Tulis | 250 permintaan per menit |
+| Tulis ke satu penawaran | 5 per menit, 10 per jam |
+
+Melebihi batas mengembalikan `429`. Ini penolakan sementara: tunggu lalu coba
+lagi, kunci tetap berlaku.
+
+## Mengganti kunci
+
+Satu akun bisa memiliki hingga 5 kunci. Buat penggantinya sebelum kamu
+membutuhkannya: arahkan integrasi ke kunci baru, pastikan berfungsi, lalu
+cabut yang lama. Tidak ada yang perlu berhenti di antaranya.
+
+## Error
+
+| Kode | Artinya |
+|---|---|
+| `401 unauthorized` | Kunci tidak dikenal atau sudah dicabut, atau permintaan berasal dari alamat di luar daftar. Pemeriksaan mana yang gagal tidak diungkapkan |
+| `403 forbidden` | Kunci valid, tetapi akun tidak boleh melakukan ini — tidak punya izin, atau ditangguhkan (`account_suspended`) |
+| `429 rate_limited` | Salah satu kuota di atas terlampaui |

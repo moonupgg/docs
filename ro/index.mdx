@@ -1,0 +1,98 @@
+---
+title: "MoonUP Seller API"
+description: "Creează și gestionează ofertele din propriile tale instrumente."
+---
+
+Tot ce are nevoie integrarea unui vânzător pentru a-și ține catalogul de oferte
+la zi: creează o ofertă, reaprovizionează-o, retrage-o, arhivează-o.
+
+Fiecare categorie are propriile rute — `/v1/offers/accounts`, `/v1/offers/currency`
+și așa mai departe — cu propriile câmpuri. Te integrezi cu categoriile în care
+vinzi, iar o categorie adăugată mai târziu pe platformă nu le afectează pe ale
+tale.
+
+Aceasta este interfața publică. Ecranele proprii ale panoului de vânzător —
+plăți, dispute, setările contului — nu fac parte din ea, iar o cheie API nu
+ajunge la ele.
+
+O *ofertă* este un anunț pe platformă. API-ul le numește `offers`, la fel ca
+tot ce urmează.
+
+## URL de bază
+
+```
+https://api.moonup.gg
+```
+
+Doar HTTPS, iar fiecare rută are versiune: `/v1/...`.
+
+## Prima ta cerere
+
+<Steps>
+  <Step title="Creează o cheie">
+    În panoul de vânzător, mergi la **Vânzător → Chei API** și creează una.
+    Este afișată o singură dată — copiaz-o atunci, nu mai poate fi citită.
+  </Step>
+  <Step title="Trimite-o">
+    Cheia se pune în antetul `Authorization` al fiecărei cereri. Nu trebuie
+    schimbată pe nimic.
+
+    ```bash
+    curl -H "Authorization: Bearer $MOONUP_API_KEY" \
+      https://api.moonup.gg/v1/offers/accounts/my
+    ```
+  </Step>
+  <Step title="Citește câmpurile categoriei">
+    Ce primește apelul de creare al unei categorii se află pe propria ei
+    pagină de referință — o ofertă de cont are preț și imagini, o ofertă de
+    monedă are un produs și un stoc. Ce diferă de la joc la joc sunt
+    `attributes`, iar endpointul schema răspunde cu ele: câmpurile, tipurile
+    lor și care sunt obligatorii.
+
+    ```bash
+    curl https://api.moonup.gg/v1/offers/games/roblox/categories/accounts/schema
+    ```
+
+    Această rută rezolvă `slug`-ul unui joc. Celelalte rute de catalog
+    adresează jocul prin `id`-ul returnat de `GET /v1/offers/games` — acolo un
+    slug răspunde cu `400`.
+
+    Citirile din catalog sunt publice — le poți explora înainte să ai o cheie.
+  </Step>
+</Steps>
+
+## Statusuri
+
+O ofertă nouă este `draft`: a ta, și nimeni altcineva nu o vede. `publish` o
+face `active`, iar cumpărătorii o pot cumpăra din acel moment — nimic nu o
+verifică înainte. Publicarea unei oferte fără nimic de vândut este refuzată cu
+`409`: adaugă stoc mai întâi. Editarea nu schimbă nimic din statusul ofertei —
+una `active` rămâne live, un `draft` rămâne ciornă.
+
+`unpublish` readuce o ofertă `active` la `draft`. `archived` este capătul
+drumului: `DELETE` retrage definitiv o ofertă și o lasă vizibilă pentru tine.
+`sold` urmează comenzile, nu apelurile: ultima unitate a ajuns într-o comandă
+închisă. O ofertă al cărei stoc este în întregime în comenzi deschise rămâne
+`active`, iar o comandă anulată pune stocul la loc.
+
+Moderarea poate returna o ofertă live ca `changes_requested`: iese de pe
+platformă, iar `moderation_reason_code` împreună cu `moderation_note` spun ce
+trebuie corectat. Următorul tău `PATCH` o face `draft`; dă-i `publish` după ce
+e corectată. O ofertă eliminată de moderare pentru o încălcare clară a
+regulilor este ștearsă: orice apel pe ea răspunde cu `404`.
+
+## Prețuri
+
+Fiecare preț din acest API este un număr întreg în cenți americani. `price: 4990`
+înseamnă $49,90. Nu există sume fracționare, iar `USD` este singura monedă.
+
+## Ce urmează
+
+<CardGroup cols={2}>
+  <Card title="Autentificare" icon="key" href="/ro/authentication">
+    Chei, liste de adrese permise, limite de rată și ce înseamnă erorile.
+  </Card>
+  <Card title="Referință API" icon="square-terminal" href="/ro/api-reference/catalog/list-games">
+    Toate endpointurile, cu un playground din care poți trimite cereri reale.
+  </Card>
+</CardGroup>

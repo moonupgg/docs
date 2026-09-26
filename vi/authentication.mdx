@@ -1,0 +1,63 @@
+---
+title: "Xác thực"
+description: "Cách một tích hợp kết nối tới MoonUP và khóa có thể truy cập những gì."
+---
+
+Khóa được tạo trong bảng điều khiển người bán tại **Người bán → Khóa API**.
+Khóa chỉ hiển thị một lần và hoạt động thay mặt tài khoản cho đến khi bị thu
+hồi.
+
+## Gửi khóa
+
+Khóa được gửi kèm mọi yêu cầu. Không có token trung gian nào để đổi.
+
+```http
+GET /v1/offers/my HTTP/1.1
+Host: api.moonup.gg
+Authorization: Bearer moonup_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+```bash
+curl -H "Authorization: Bearer $MOONUP_API_KEY" https://api.moonup.gg/v1/offers/my
+```
+
+Chỉ HTTPS. Khóa đã từng đi qua HTTP thường cần được coi là đã lộ và phải thay
+mới.
+
+## Khóa có thể truy cập những gì
+
+Các ưu đãi của chính người bán: liệt kê (`GET /v1/offers/my`), tạo, chỉnh sửa,
+quản lý đơn vị, gỡ đăng và lưu trữ. Mọi thứ mà bảng điều khiển bảo vệ bằng yếu
+tố thứ hai — đổi email tài khoản, cài đặt 2FA, rút tiền — đều nằm ngoài phạm vi
+của khóa.
+
+## Danh sách địa chỉ
+
+Không bắt buộc. Nếu tích hợp của bạn chạy từ các địa chỉ cố định, hãy liệt kê
+chúng khi tạo khóa (một địa chỉ hoặc mạng con, tối đa 16 mục), và khóa sẽ bị
+từ chối từ mọi nơi khác. Danh sách trống nghĩa là mọi địa chỉ.
+
+## Giới hạn tần suất
+
+| Hạn mức | Giới hạn |
+|---|---|
+| Đọc | 500 yêu cầu mỗi phút |
+| Ghi | 250 yêu cầu mỗi phút |
+| Ghi vào một ưu đãi | 5 mỗi phút, 10 mỗi giờ |
+
+Vượt quá sẽ trả `429`. Đây là từ chối tạm thời: hãy chờ và thử lại, khóa vẫn
+còn hiệu lực.
+
+## Thay khóa
+
+Một tài khoản có tối đa 5 khóa. Hãy tạo khóa thay thế trước khi cần: chuyển
+tích hợp sang khóa mới, xác nhận nó hoạt động, rồi thu hồi khóa cũ. Không cần
+dừng bất cứ thứ gì trong quá trình này.
+
+## Lỗi
+
+| Mã | Ý nghĩa |
+|---|---|
+| `401 unauthorized` | Khóa không xác định hoặc đã bị thu hồi, hoặc yêu cầu đến từ địa chỉ ngoài danh sách. Không tiết lộ bước kiểm tra nào thất bại |
+| `403 forbidden` | Khóa hợp lệ, nhưng tài khoản không được phép làm việc này — thiếu quyền hoặc đang bị đình chỉ (`account_suspended`) |
+| `429 rate_limited` | Đã vượt một trong các hạn mức ở trên |
